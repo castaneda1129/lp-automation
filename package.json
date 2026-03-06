@@ -1,0 +1,19 @@
+{
+  "name": "lp-automation",
+  "version": "1.0.0",
+  "description": "LP制作自動化バックエンド",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "resend": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
