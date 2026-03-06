@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LP制作 ヒアリングフォーム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f5f0; --white: #fff;
+    --accent: #ff6b35; --accent-light: #fff3ef; --accent2: #4ecdc4;
+    --text: #2d2d2d; --muted: #999; --border: #e8e4dc;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; padding: 32px 20px 60px; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 36px; }
+  .logo { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .logo-text { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; }
+  .header-badge { display: inline-block; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; }
+  .header h1 { font-size: clamp(22px,5vw,30px); font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
+  .header h1 span { color: var(--accent); }
+  .header p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .quality-banner { background: linear-gradient(135deg,#fff8f5,#fff3ef); border: 1.5px solid rgba(255,107,53,0.2); border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .quality-banner .icon { font-size: 20px; flex-shrink: 0; }
+  .quality-banner-text { font-size: 13px; line-height: 1.7; color: #555; }
+  .quality-banner-text strong { color: var(--accent); font-weight: 700; }
+  .progress-card { background: var(--white); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; }
+  .progress-steps { display: flex; gap: 6px; flex: 1; }
+  .progress-dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); transition: background 0.3s; }
+  .progress-dot.done { background: var(--accent); }
+  .progress-dot.active { background: var(--accent); opacity: 0.4; }
+  .progress-text { font-size: 13px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+  .progress-text span { color: var(--accent); font-weight: 700; }
+  .card { background: var(--white); border-radius: 20px; padding: 32px 28px; box-shadow: var(--shadow); }
+  .step { display: none; }
+  .step.active { display: block; animation: fadeUp 0.35s ease forwards; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .step-tag { display: inline-flex; align-items: center; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; margin-bottom: 12px; font-family: 'Outfit', sans-serif; letter-spacing: 0.05em; }
+  .step-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; line-height: 1.4; }
+  .step-desc { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+  .field { margin-bottom: 24px; }
+  .field-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .optional-tag { font-size: 10px; font-weight: 400; color: var(--muted); background: var(--bg); padding: 2px 7px; border-radius: 4px; }
+  input[type="text"], input[type="email"], textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; }
+  input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+  input::placeholder, textarea::placeholder { color: #ccc; }
+  textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
+  .free-input-wrap { margin-top: 16px; background: #fffaf8; border: 1.5px solid rgba(255,107,53,0.15); border-radius: 12px; padding: 14px 16px; }
+  .free-input-label { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .free-input-hint { font-size: 11px; color: #aaa; margin-bottom: 8px; line-height: 1.6; }
+  .free-input-hint strong { color: #888; }
+  .free-input-wrap textarea { border-color: rgba(255,107,53,0.2); background: var(--white); min-height: 70px; font-size: 13px; }
+  .choices { display: grid; gap: 8px; }
+  .choices.cols-2 { grid-template-columns: 1fr 1fr; }
+  .choice { position: relative; }
+  .choice input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .choice-label { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; background: var(--white); user-select: none; }
+  .choice-label .check { width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-size: 10px; color: transparent; }
+  .choice input:checked + .choice-label { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+  .choice input:checked + .choice-label .check { background: var(--accent); border-color: var(--accent); color: white; }
+  .choice-label:hover { border-color: #ddd; background: #fafaf8; }
+  .color-choices { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .color-choice { position: relative; cursor: pointer; }
+  .color-choice input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .color-swatch { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px 10px; border: 1.5px solid var(--border); border-radius: 12px; transition: all 0.15s; background: var(--white); }
+  .swatch-circle { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .swatch-label { font-size: 11px; color: var(--muted); font-weight: 500; text-align: center; }
+  .color-choice input:checked + .color-swatch { border-color: var(--accent); background: var(--accent-light); }
+  .color-choice input:checked + .color-swatch .swatch-label { color: var(--accent); font-weight: 700; }
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+  .tip { background: #f0faf9; border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #555; margin-top: 10px; line-height: 1.6; }
+  .btn-wrap { display: flex; gap: 10px; margin-top: 32px; }
+  .btn-next { flex: 1; background: var(--accent); color: white; border: none; border-radius: 12px; padding: 15px 24px; font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-next:hover { background: #ff5520; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,107,53,0.35); }
+  .btn-back { background: var(--bg); color: var(--muted); border: none; border-radius: 12px; padding: 15px 18px; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-back:hover { background: var(--border); color: var(--text); }
+
+  /* ── STEP 6 ── */
+  .preview-intro { background: linear-gradient(135deg,#fff8f5,#fff3ef); border: 1.5px solid rgba(255,107,53,0.2); border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; color: #555; }
+  .preview-intro strong { color: var(--accent); }
+  .lp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .lp-card { position: relative; border-radius: 14px; overflow: hidden; border: 2.5px solid var(--border); cursor: pointer; transition: all 0.2s; background: #fff; }
+  .lp-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); border-color: #ccc; }
+  .lp-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,107,53,0.18); }
+  .lp-card input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .lp-badge { position: absolute; top: 8px; right: 8px; background: var(--accent); color: white; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 20px; opacity: 0; transition: opacity 0.2s; z-index: 20; pointer-events: none; }
+  .lp-card.selected .lp-badge { opacity: 1; }
+
+  /* iframe wrapper — clips & scales the preview */
+  .iframe-wrap {
+    width: 100%;
+    aspect-ratio: 9/16;
+    overflow: hidden;
+    position: relative;
+    pointer-events: none;
+  }
+  .iframe-wrap iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 900px;   /* render at full desktop width */
+    height: 1600px;
+    border: none;
+    transform-origin: top left;
+  }
+
+  .lp-meta { padding: 8px 10px; border-top: 1px solid var(--border); background: var(--white); }
+  .lp-meta-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .lp-meta-desc { font-size: 10px; color: var(--muted); line-height: 1.4; }
+  .lp-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 10px; }
+
+  /* Complete */
+  .complete { display: none; text-align: center; }
+  .complete.active { display: block; animation: fadeUp 0.4s ease forwards; }
+  .complete-icon { width: 72px; height: 72px; background: linear-gradient(135deg,#ff6b35,#ff8c5a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; box-shadow: 0 8px 24px rgba(255,107,53,0.3); }
+  .complete h2 { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+  .complete .complete-msg { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 28px; }
+  .timeline { text-align: left; border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .timeline-item { display: flex; gap: 16px; align-items: flex-start; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--white); }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-day { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 3px 8px; border-radius: 6px; white-space: nowrap; min-width: 50px; text-align: center; }
+  .timeline-text { font-size: 13px; color: #555; line-height: 1.6; padding-top: 2px; }
+
+  @media (max-width: 480px) {
+    .card { padding: 24px 18px; }
+    .color-choices { grid-template-columns: repeat(2,1fr); }
+    .lp-grid { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      <div class="logo-text">LP Studio</div>
+    </div>
+    <div class="header-badge">✨ 最短5営業日で納品</div>
+    <h1>LP制作、<span>はじめましょう！</span></h1>
+    <p>3分で入力完了。あとはおまかせください。</p>
+  </div>
+
+  <div class="quality-banner">
+    <div class="icon">✍️</div>
+    <div class="quality-banner-text">
+      <strong>書けば書くほど、理想に近づきます。</strong><br>
+      選択肢はあくまで目安です。各ステップの自由入力欄に「こだわり・補足・伝えたいこと」を書いていただくと、よりイメージ通りのLPに仕上がります。
+    </div>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-steps">
+      <div class="progress-dot" id="dot1"></div>
+      <div class="progress-dot" id="dot2"></div>
+      <div class="progress-dot" id="dot3"></div>
+      <div class="progress-dot" id="dot4"></div>
+      <div class="progress-dot" id="dot5"></div>
+      <div class="progress-dot" id="dot6"></div>
+    </div>
+    <div class="progress-text">STEP <span id="stepNum">1</span> / 6</div>
+  </div>
+
+  <div class="card">
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step1">
+      <div class="step-tag">STEP 01</div>
+      <div class="step-title">どんなお仕事ですか？🙌</div>
+      <div class="step-desc">まず業種とサービスの概要を教えてください</div>
+      <div class="field">
+        <div class="field-label">🏢 業種</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="industry" value="美容・エステ"><span class="choice-label"><span class="check">✓</span>美容・エステ</span></label>
+          <label class="choice"><input type="radio" name="industry" value="飲食・カフェ"><span class="choice-label"><span class="check">✓</span>飲食・カフェ</span></label>
+          <label class="choice"><input type="radio" name="industry" value="EC・通販"><span class="choice-label"><span class="check">✓</span>EC・通販</span></label>
+          <label class="choice"><input type="radio" name="industry" value="士業・コンサル"><span class="choice-label"><span class="check">✓</span>士業・コンサル</span></label>
+          <label class="choice"><input type="radio" name="industry" value="IT・SaaS"><span class="choice-label"><span class="check">✓</span>IT・SaaS</span></label>
+          <label class="choice"><input type="radio" name="industry" value="教育・スクール"><span class="choice-label"><span class="check">✓</span>教育・スクール</span></label>
+          <label class="choice"><input type="radio" name="industry" value="不動産"><span class="choice-label"><span class="check">✓</span>不動産</span></label>
+          <label class="choice"><input type="radio" name="industry" value="その他"><span class="choice-label"><span class="check">✓</span>その他</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">✏️ サービス名・商品名</div>
+        <input type="text" id="serviceName" placeholder="例：〇〇エステサロン、〇〇コーチング">
+      </div>
+      <div class="free-input-wrap">
+        <div class="free-input-label">💬 サービスについて、もう少し詳しく <span class="optional-tag">任意</span></div>
+        <div class="free-input-hint">どんな課題を解決するか、他社との違いなど。<strong>細かく書くほど、あなたのサービスらしいLPになります。</strong></div>
+        <textarea placeholder="例：「10年以上の経験を持つ女性セラピストが担当。産後の体の悩みを抱えるママ向けに特化しており、子連れOKの個室で施術します」"></textarea>
+      </div>
+      <div class="btn-wrap"><button class="btn-next" onclick="nextStep(1)">次へ進む →</button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+      <div class="step-tag">STEP 02</div>
+      <div class="step-title">誰に、何をしてほしい？🎯</div>
+      <div class="step-desc">LPで達成したいことを教えてください</div>
+      <div class="field">
+        <div class="field-label">🎯 LPの目的</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="goal" value="問い合わせ獲得"><span class="choice-label"><span class="check">✓</span>問い合わせ獲得</span></label>
+          <label class="choice"><input type="radio" name="goal" value="購入・申し込み"><span class="choice-label"><span class="check">✓</span>購入・申し込み</span></label>
+          <label class="choice"><input type="radio" name="goal" value="LINE登録"><span class="choice-label"><span class="check">✓</span>LINE登録</span></label>
+          <label class="choice"><input type="radio" name="goal" value="採用・求人"><span class="choice-label"><span class="check">✓</span>採用・求人</span></label>
+          <label class="choice"><input type="radio" name="goal" value="予約獲得"><span class="choice-label"><span class="check">✓</span>予約獲得</span></label>
+          <label class="choice"><input type="radio" name="goal" value="資料請求"><span class="choice-label"><span class="check">✓</span>資料請求</span></label>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <div class="field-label">👤 メインターゲット</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="target" value="20〜30代女性"><span class="choice-label"><span class="check">✓</span>20〜30代女性</span></label>
+          <label class="choice"><input type="radio" name="target" value="30〜40代男性"><span class="choice-label"><span class="check">✓</span>30〜40代男性</span></label>
+          <label class="choice"><input type="radio" name="target" value="40〜50代男女"><span class="choice-label"><span class="check">✓</span>40〜50代男女</span></label>
+          <label class="choice"><input type="radio" name="target" value="法人担当者"><span class="choice-label"><span class="check">✓</span>法人担当者</span></label>
+          <label class="choice"><input type="radio" name="target" value="子育て世代"><span class="choice-label"><span class="check">✓</span>子育て世代</span></label>
+          <label class="choice"><input type="radio" name="target" value="その他"><span class="choice-label"><span class="check">✓</span>その他</span></label>
+        </div>
+      </div>
+      <div class="free-input-wrap">
+        <div class="free-input-label">💬 ターゲットについて、もう少し詳しく <span class="optional-tag">任意</span></div>
+        <div class="free-input-hint">年齢・職業・悩み・ライフスタイルなど。<strong>ターゲットが具体的なほど、刺さるコピーが書けます。</strong></div>
+        <textarea placeholder="例：「30代の共働き夫婦で、忙しくて運動できていない方」"></textarea>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn-back" onclick="prevStep(2)">← 戻る</button>
+        <button class="btn-next" onclick="nextStep(2)">次へ進む →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step3">
+      <div class="step-tag">STEP 03</div>
+      <div class="step-title">どんな雰囲気にしたい？🎨</div>
+      <div class="step-desc">イメージに近いものを選んでください</div>
+      <div class="field">
+        <div class="field-label">💬 トーン・雰囲気</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="tone" value="luxury"><span class="choice-label"><span class="check">✓</span>高級感・洗練</span></label>
+          <label class="choice"><input type="radio" name="tone" value="friendly"><span class="choice-label"><span class="check">✓</span>親しみやすい・温かい</span></label>
+          <label class="choice"><input type="radio" name="tone" value="cool"><span class="choice-label"><span class="check">✓</span>クール・スタイリッシュ</span></label>
+          <label class="choice"><input type="radio" name="tone" value="natural"><span class="choice-label"><span class="check">✓</span>ナチュラル・オーガニック</span></label>
+          <label class="choice"><input type="radio" name="tone" value="trust"><span class="choice-label"><span class="check">✓</span>信頼感・誠実</span></label>
+          <label class="choice"><input type="radio" name="tone" value="pop"><span class="choice-label"><span class="check">✓</span>ポップ・元気</span></label>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <div class="field-label">🌈 カラーイメージ</div>
+        <div class="color-choices">
+          <label class="color-choice"><input type="radio" name="color" value="warm"><div class="color-swatch"><div class="swatch-circle" style="background:linear-gradient(135deg,#f97316,#ec4899)"></div><div class="swatch-label">暖色系</div></div></label>
+          <label class="color-choice"><input type="radio" name="color" value="cool"><div class="color-swatch"><div class="swatch-circle" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)"></div><div class="swatch-label">寒色系</div></div></label>
+          <label class="color-choice"><input type="radio" name="color" value="mono"><div class="color-swatch"><div class="swatch-circle" style="background:linear-gradient(135deg,#374151,#9ca3af)"></div><div class="swatch-label">モノトーン</div></div></label>
+          <label class="color-choice"><input type="radio" name="color" value="omakase"><div class="color-swatch"><div class="swatch-circle" style="background:linear-gradient(135deg,#a855f7,#ec4899,#f97316)"></div><div class="swatch-label">おまかせ</div></div></label>
+        </div>
+      </div>
+      <div class="field" style="margin-top:20px">
+        <div class="field-label">🔗 参考サイトURL <span class="optional-tag">任意</span></div>
+        <input type="text" placeholder="https://...">
+        <div class="tip">💡 「このサイトみたいな感じ」があると、よりイメージに近いLPが作れます</div>
+      </div>
+      <div class="free-input-wrap">
+        <div class="free-input-label">💬 デザインのこだわり・NGがあれば <span class="optional-tag">任意</span></div>
+        <div class="free-input-hint">ブランドカラー、避けたい印象など。<strong>好みや制約を教えてもらえると、方向性がブレません。</strong></div>
+        <textarea placeholder="例：「ブランドカラーが#E8634Aのオレンジ。シンプルで余白多めが好み」"></textarea>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn-back" onclick="prevStep(3)">← 戻る</button>
+        <button class="btn-next" onclick="nextStep(3)">次へ進む →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" id="step4">
+      <div class="step-tag">STEP 04</div>
+      <div class="step-title">素材はお持ちですか？📁</div>
+      <div class="step-desc">ないものはこちらで用意します！お気軽に</div>
+      <div class="field">
+        <div class="field-label">🖼 ロゴ</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="logo" value="あり"><span class="choice-label"><span class="check">✓</span>あり（提供できる）</span></label>
+          <label class="choice"><input type="radio" name="logo" value="なし"><span class="choice-label"><span class="check">✓</span>なし</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">📸 写真素材</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="photo" value="あり"><span class="choice-label"><span class="check">✓</span>あり（提供できる）</span></label>
+          <label class="choice"><input type="radio" name="photo" value="なし"><span class="choice-label"><span class="check">✓</span>なし（用意してほしい）</span></label>
+        </div>
+        <div class="tip">💡 写真がない場合は、プロのフォトストック素材を使って対応します</div>
+      </div>
+      <div class="field">
+        <div class="field-label">✍️ キャッチコピー</div>
+        <div class="choices cols-2">
+          <label class="choice"><input type="radio" name="copy" value="あり"><span class="choice-label"><span class="check">✓</span>あり（決まっている）</span></label>
+          <label class="choice"><input type="radio" name="copy" value="なし"><span class="choice-label"><span class="check">✓</span>なし（考えてほしい）</span></label>
+        </div>
+      </div>
+      <div class="free-input-wrap">
+        <div class="free-input-label">💬 LPに入れたい内容・文言があれば <span class="optional-tag">任意</span></div>
+        <div class="free-input-hint">実績・お客様の声・料金プランなど。<strong>入れたい情報を書いておくと、構成がぐっと良くなります。</strong></div>
+        <textarea placeholder="例：「実績：導入企業300社以上／お客様の声は3つ載せたい／料金プランは3種類あり」" style="min-height:100px"></textarea>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn-back" onclick="prevStep(4)">← 戻る</button>
+        <button class="btn-next" onclick="nextStep(4)">次へ進む →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step" id="step5">
+      <div class="step-tag">STEP 05</div>
+      <div class="step-title">最後に連絡先を教えてください 📩</div>
+      <div class="step-desc">制作完了後、こちらにご連絡します</div>
+      <div class="field">
+        <div class="field-label">🏢 会社名・屋号 <span class="optional-tag">任意</span></div>
+        <input type="text" id="companyName" placeholder="例：〇〇株式会社（個人の方は空欄でOKです）">
+      </div>
+      <div class="field">
+        <div class="field-label">😊 お名前</div>
+        <input type="text" id="contactName" placeholder="例：田中 太郎">
+      </div>
+      <div class="field">
+        <div class="field-label">📧 メールアドレス</div>
+        <input type="email" id="email" placeholder="例：tanaka@example.com">
+        <div class="tip">💡 参考LPのご提案・完成のご連絡はこちらに送ります</div>
+      </div>
+      <div class="free-input-wrap">
+        <div class="free-input-label">💬 その他、ご要望・気になることがあれば <span class="optional-tag">任意</span></div>
+        <div class="free-input-hint"><strong>遠慮なく書いてください！</strong></div>
+        <textarea placeholder="例：「来週中に欲しい」「初めてで不安です」"></textarea>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn-back" onclick="prevStep(5)">← 戻る</button>
+        <button class="btn-next" onclick="goToPreview()">デザインイメージを確認する →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step" id="step6">
+      <div class="step-tag">STEP 06</div>
+      <div class="step-title">イメージに近いのはどれ？🖼</div>
+      <div class="preview-intro">
+        入力内容をもとに<strong>4つのレイアウトパターン</strong>を用意しました。<br>
+        「なんとなくこの方向かな」と思うものを1つ選んでください。細部は制作時に調整します。
+      </div>
+      <div class="lp-grid" id="lpGrid"></div>
+      <div class="lp-hint">タップして選択 → そのまま依頼確定できます</div>
+      <div class="btn-wrap" style="margin-top:24px">
+        <button class="btn-back" onclick="prevStep(6)">← 戻る</button>
+        <button class="btn-next" onclick="submitForm()">この方向で依頼を確定する 🎉</button>
+      </div>
+    </div>
+
+    <!-- Complete -->
+    <div class="complete" id="complete">
+      <div class="complete-icon">🎉</div>
+      <h2>ありがとうございます！</h2>
+      <p class="complete-msg">ヒアリング内容を受け付けました。<br>担当者より詳細なデザイン案をご提案しますので、<br>しばらくお待ちください 😊</p>
+      <div class="timeline">
+        <div class="timeline-item"><div class="timeline-day">Day 1</div><div class="timeline-text">選んでいただいたイメージをベースに、詳細なデザイン案をメールでお送りします ✉️</div></div>
+        <div class="timeline-item"><div class="timeline-day">Day 3〜4</div><div class="timeline-text">制作中です。細部の調整を丁寧に行っています 🛠</div></div>
+        <div class="timeline-item"><div class="timeline-day">Day 5</div><div class="timeline-text">完成したLPのURLをお送りします！変更は月1万円のプランでいつでも対応します 🙌</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const TOTAL = 6;
+let current = 1;
+
+function updateProgress(n) {
+  document.getElementById('stepNum').textContent = n <= TOTAL ? n : '完了';
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.getElementById('dot' + i);
+    d.className = 'progress-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('complete').classList.remove('active');
+  document.getElementById('step' + n)?.classList.add('active');
+  updateProgress(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function nextStep(f) { if (f < TOTAL) { current = f + 1; showStep(current); } }
+function prevStep(f) { if (f > 1) { current = f - 1; showStep(current); } }
+
+// ─────────────────────────────────────────────
+// 4 fully distinct LP HTML templates
+// ─────────────────────────────────────────────
+
+const TEMPLATES = {
+
+  // A: 高級感 — ダーク、縦型、センタリング、骨格線、ゴールドアクセント
+  luxury: {
+    name: '高級感・洗練',
+    desc: '余白多め・ゴールド×ブラック・格調あるセンターレイアウト',
+    html: (svc) => `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#f0ede8;font-family:Georgia,serif;min-height:100vh}
+nav{display:flex;justify-content:space-between;align-items:center;padding:32px 60px;border-bottom:1px solid #1e1e1e}
+.nav-logo{font-size:13px;letter-spacing:6px;color:#b8924a;text-transform:uppercase}
+.nav-links{display:flex;gap:32px}
+.nav-links a{font-size:11px;letter-spacing:3px;color:#555;text-decoration:none;text-transform:uppercase}
+.nav-links a:last-child{color:#b8924a;border-bottom:1px solid #b8924a;padding-bottom:2px}
+.hero{text-align:center;padding:120px 60px 100px;border-bottom:1px solid #1a1a1a;position:relative}
+.hero::before{content:'';position:absolute;top:60px;left:50%;transform:translateX(-50%);width:1px;height:40px;background:linear-gradient(#b8924a,transparent)}
+.hero-eyebrow{font-size:10px;letter-spacing:8px;color:#b8924a;text-transform:uppercase;margin-bottom:48px}
+.hero h1{font-size:62px;font-weight:400;line-height:1.2;color:#f0ede8;margin-bottom:24px;letter-spacing:-1px}
+.hero h1 em{font-style:italic;color:#b8924a}
+.hero-sub{font-size:14px;color:#666;letter-spacing:2px;line-height:2;margin-bottom:64px}
+.hero-cta{display:inline-block;padding:18px 56px;border:1px solid #b8924a;color:#b8924a;font-size:11px;letter-spacing:5px;text-transform:uppercase;cursor:pointer;transition:all .3s}
+.features{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #1a1a1a}
+.feature{padding:64px 48px;border-right:1px solid #1a1a1a;text-align:center}
+.feature:last-child{border-right:none}
+.feat-num{font-size:10px;letter-spacing:4px;color:#b8924a;margin-bottom:24px}
+.feat-title{font-size:18px;font-weight:400;color:#e0ddd8;margin-bottom:16px;letter-spacing:1px}
+.feat-text{font-size:12px;color:#555;line-height:2;letter-spacing:0.5px}
+.quote{padding:100px 180px;text-align:center;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;background:#080808}
+.quote-mark{font-size:80px;color:#1e1e1e;line-height:0.5;margin-bottom:40px}
+.quote-text{font-size:22px;color:#c8c0b0;line-height:1.8;font-weight:400;font-style:italic;margin-bottom:32px}
+.quote-author{font-size:10px;letter-spacing:5px;color:#b8924a;text-transform:uppercase}
+.cta-band{display:flex;align-items:center;justify-content:space-between;padding:80px 120px;background:#0f0f0f}
+.cta-band h2{font-size:36px;font-weight:400;color:#f0ede8;letter-spacing:-0.5px}
+.cta-band h2 span{color:#b8924a;font-style:italic}
+.cta-band button{padding:20px 64px;background:#b8924a;color:#0c0c0c;border:none;font-size:11px;letter-spacing:4px;text-transform:uppercase;cursor:pointer;font-weight:700}
+footer{text-align:center;padding:40px;border-top:1px solid #1a1a1a;background:#050505}
+footer p{font-size:10px;letter-spacing:3px;color:#333;text-transform:uppercase}
+</style></head><body>
+<nav>
+  <div class="nav-logo">${svc || 'Brand'}</div>
+  <div class="nav-links"><a href="#">About</a><a href="#">Service</a><a href="#">Works</a><a href="#">Contact →</a></div>
+</nav>
+<div class="hero">
+  <div class="hero-eyebrow">Premium Service</div>
+  <h1>上質な時間を、<br><em>あなたに。</em></h1>
+  <div class="hero-sub">本物を知る人のための、妥協なきサービス</div>
+  <div class="hero-cta">ご予約・お問い合わせ</div>
+</div>
+<div class="features">
+  <div class="feature"><div class="feat-num">01</div><div class="feat-title">Craftsmanship</div><div class="feat-text">細部に宿る美しさ。<br>すべてに意味がある。</div></div>
+  <div class="feature"><div class="feat-num">02</div><div class="feat-title">Exclusivity</div><div class="feat-text">選ばれた人だけが<br>知る体験。</div></div>
+  <div class="feature"><div class="feat-num">03</div><div class="feat-title">Legacy</div><div class="feat-text">時を超えて<br>語り継がれる価値。</div></div>
+</div>
+<div class="quote">
+  <div class="quote-mark">"</div>
+  <div class="quote-text">こんなにも心が満たされる体験は初めてでした。<br>また必ずここに戻ってきます。</div>
+  <div class="quote-author">— T.M. 東京都 40代</div>
+</div>
+<div class="cta-band">
+  <h2>まずは、<span>ご相談から。</span></h2>
+  <button>無料相談を予約する</button>
+</div>
+<footer><p>${svc || 'Brand'} © 2025 All Rights Reserved</p></footer>
+</body></html>`
+  },
+
+  // B: 親しみやすい — 丸み・パステル・イラスト的・カード型
+  friendly: {
+    name: '親しみやすい・温かい',
+    desc: 'パステル・丸カード・会話するような言葉づかい',
+    html: (svc) => `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff8f4;color:#3d2314;font-family:'Noto Sans JP',sans-serif;min-height:100vh}
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:#fff;border-radius:0 0 24px 24px;box-shadow:0 2px 20px rgba(0,0,0,0.06)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:18px;color:#ff6b35}
+.nav-logo span{background:#ff6b35;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
+.nav-btn{background:#ff6b35;color:#fff;border:none;padding:12px 28px;border-radius:100px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.hero{text-align:center;padding:80px 60px 60px;position:relative;overflow:hidden}
+.hero::before{content:'🌸';position:absolute;top:-20px;right:60px;font-size:200px;opacity:0.06}
+.hero-tag{display:inline-block;background:#fff;color:#ff6b35;font-size:13px;font-weight:700;padding:8px 20px;border-radius:100px;margin-bottom:28px;box-shadow:0 2px 12px rgba(255,107,53,0.15)}
+.hero h1{font-size:52px;font-weight:900;line-height:1.25;margin-bottom:20px;color:#2d1508}
+.hero h1 span{color:#ff6b35;position:relative}
+.hero-sub{font-size:16px;color:#a07050;line-height:1.8;margin-bottom:40px}
+.hero-btns{display:flex;justify-content:center;gap:16px}
+.btn-primary{background:#ff6b35;color:#fff;border:none;padding:18px 44px;border-radius:100px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,53,0.35);font-family:inherit}
+.btn-secondary{background:#fff;color:#ff6b35;border:2px solid #ff6b35;padding:16px 44px;border-radius:100px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.trust{display:flex;justify-content:center;gap:40px;padding:32px;background:#fff;margin:0 0 60px}
+.trust-item{text-align:center}
+.trust-num{font-size:32px;font-weight:900;color:#ff6b35}
+.trust-label{font-size:12px;color:#aaa;margin-top:4px}
+.cards-section{padding:0 40px 80px}
+.cards-title{text-align:center;margin-bottom:40px}
+.cards-title h2{font-size:32px;font-weight:900;margin-bottom:8px}
+.cards-title p{font-size:14px;color:#a07050}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:#fff;border-radius:24px;padding:36px 28px;box-shadow:0 4px 20px rgba(0,0,0,0.06);text-align:center;transition:.2s}
+.card-emoji{font-size:48px;margin-bottom:16px}
+.card h3{font-size:18px;font-weight:700;margin-bottom:12px;color:#2d1508}
+.card p{font-size:13px;color:#a07050;line-height:1.8}
+.voice{background:linear-gradient(135deg,#fff5f0,#ffe8dc);padding:80px 60px;text-align:center}
+.voice h2{font-size:28px;font-weight:900;margin-bottom:40px}
+.voice-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:700px;margin:0 auto}
+.voice-card{background:#fff;border-radius:20px;padding:28px;text-align:left}
+.voice-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.voice-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ffd0b8,#ffb49a);display:flex;align-items:center;justify-content:center;font-size:22px}
+.voice-name{font-weight:700;font-size:14px}
+.voice-age{font-size:12px;color:#aaa}
+.stars{color:#ff6b35;font-size:14px;margin-bottom:8px}
+.voice-text{font-size:13px;color:#777;line-height:1.8}
+.cta{background:#ff6b35;padding:80px 60px;text-align:center}
+.cta h2{font-size:36px;font-weight:900;color:#fff;margin-bottom:12px}
+.cta p{font-size:15px;color:rgba(255,255,255,0.8);margin-bottom:40px}
+.cta button{background:#fff;color:#ff6b35;border:none;padding:20px 60px;border-radius:100px;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,0.2);font-family:inherit}
+footer{background:#fff8f4;text-align:center;padding:32px;font-size:12px;color:#bbb}
+</style></head><body>
+<nav>
+  <div class="nav-logo"><span>🌸</span>${svc || 'サービス名'}</div>
+  <div class="nav-btn">予約する →</div>
+</nav>
+<div class="hero">
+  <div class="hero-tag">✨ 初回無料相談受付中</div>
+  <h1>毎日を、もっと<br><span>笑顔</span>にしよう</h1>
+  <div class="hero-sub">あなたの「困った」に、丁寧に向き合います。<br>まずは気軽にご相談ください。</div>
+  <div class="hero-btns">
+    <button class="btn-primary">今すぐ無料相談 🙌</button>
+    <button class="btn-secondary">サービスを見る</button>
+  </div>
+</div>
+<div class="trust">
+  <div class="trust-item"><div class="trust-num">2,800+</div><div class="trust-label">累計利用者</div></div>
+  <div class="trust-item"><div class="trust-num">98%</div><div class="trust-label">満足度</div></div>
+  <div class="trust-item"><div class="trust-num">4.9</div><div class="trust-label">平均評価</div></div>
+  <div class="trust-item"><div class="trust-num">10年+</div><div class="trust-label">の実績</div></div>
+</div>
+<div class="cards-section">
+  <div class="cards-title"><h2>えらばれる3つの理由 💛</h2><p>お客さまから「ここで良かった！」と言っていただけるために</p></div>
+  <div class="cards">
+    <div class="card"><div class="card-emoji">🤝</div><h3>親身な対応</h3><p>担当者がしっかり話を聞きます。どんな小さな悩みもOK！</p></div>
+    <div class="card"><div class="card-emoji">⏱</div><h3>スピード対応</h3><p>お問い合わせから24時間以内にご連絡。待たせません！</p></div>
+    <div class="card"><div class="card-emoji">🛡</div><h3>安心の保証</h3><p>万が一ご満足いただけなければ全額返金。リスクゼロ！</p></div>
+  </div>
+</div>
+<div class="voice">
+  <h2>お客さまの声 😊</h2>
+  <div class="voice-cards">
+    <div class="voice-card"><div class="voice-head"><div class="voice-avatar">👩</div><div><div class="voice-name">Aさま</div><div class="voice-age">30代・東京都</div></div></div><div class="stars">★★★★★</div><div class="voice-text">スタッフの方がとても親切で、初めてでも安心して利用できました！</div></div>
+    <div class="voice-card"><div class="voice-head"><div class="voice-avatar">👨</div><div><div class="voice-name">Bさま</div><div class="voice-age">40代・神奈川県</div></div></div><div class="stars">★★★★★</div><div class="voice-text">思っていた以上の結果が出て驚きました。また絶対来ます！</div></div>
+  </div>
+</div>
+<div class="cta">
+  <h2>さあ、はじめましょう🎉</h2>
+  <p>まずは無料相談から。お気軽にどうぞ！</p>
+  <button>無料相談を予約する →</button>
+</div>
+<footer>© 2025 ${svc || 'サービス名'} All Rights Reserved</footer>
+</body></html>`
+  },
+
+  // C: クール・スタイリッシュ — ダークヒーロー、フルブリード、斜めライン、テック感
+  cool: {
+    name: 'クール・スタイリッシュ',
+    desc: 'ダークヒーロー・斜め構図・グリッド・ネオンブルー',
+    html: (svc) => `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f4ff;color:#0f172a;font-family:'Noto Sans JP',sans-serif;min-height:100vh}
+nav{display:flex;justify-content:space-between;align-items:center;padding:24px 60px;background:#0f172a;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Outfit',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.5px}
+.nav-logo span{color:#3b82f6}
+.nav-right{display:flex;align-items:center;gap:24px}
+.nav-link{color:#64748b;font-size:13px;text-decoration:none}
+.nav-cta{background:#3b82f6;color:#fff;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit}
+.hero{background:#0f172a;padding:0 0 0 0;min-height:600px;position:relative;overflow:hidden;display:flex}
+.hero-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.05) 1px,transparent 1px);background-size:60px 60px}
+.hero-slash{position:absolute;right:-80px;top:-60px;width:600px;height:800px;background:linear-gradient(135deg,#1e3a5f,#0f172a);transform:skewX(-12deg);z-index:0}
+.hero-content{position:relative;z-index:2;padding:120px 60px;flex:1;max-width:640px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#60a5fa;font-size:12px;padding:6px 16px;border-radius:4px;margin-bottom:36px;font-family:'Outfit',sans-serif;letter-spacing:1px}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#3b82f6;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-family:'Outfit',sans-serif;font-size:72px;font-weight:900;line-height:1.05;color:#f8fafc;margin-bottom:24px;letter-spacing:-2px}
+.hero h1 .accent{color:#3b82f6;display:block}
+.hero-sub{font-size:16px;color:#94a3b8;line-height:1.8;margin-bottom:48px;max-width:440px}
+.hero-actions{display:flex;gap:16px;align-items:center}
+.btn-primary{background:#3b82f6;color:#fff;border:none;padding:16px 36px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit}
+.btn-ghost{color:#94a3b8;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;border:none;background:none;font-family:inherit}
+.hero-stats{position:absolute;right:60px;bottom:60px;z-index:2;display:flex;flex-direction:column;gap:20px}
+.stat{background:rgba(30,41,59,0.9);border:1px solid #1e3a5f;border-radius:12px;padding:20px 28px;backdrop-filter:blur(10px)}
+.stat-num{font-family:'Outfit',sans-serif;font-size:36px;font-weight:900;color:#3b82f6}
+.stat-label{font-size:12px;color:#64748b;margin-top:4px}
+.features{background:#fff;padding:100px 60px}
+.features-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:64px;padding-bottom:32px;border-bottom:1px solid #e2e8f0}
+.features-title{font-family:'Outfit',sans-serif;font-size:42px;font-weight:900;color:#0f172a;letter-spacing:-1px;line-height:1.1}
+.features-sub{font-size:14px;color:#94a3b8;max-width:280px;text-align:right;line-height:1.8}
+.feat-list{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#f0f4ff}
+.feat-item{background:#fff;padding:48px 36px}
+.feat-num{font-family:'Outfit',sans-serif;font-size:48px;font-weight:900;color:#e2e8f0;margin-bottom:16px;line-height:1}
+.feat-title{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:12px}
+.feat-bar{width:32px;height:3px;background:#3b82f6;margin-bottom:16px}
+.feat-text{font-size:13px;color:#64748b;line-height:1.8}
+.case{background:#0f172a;padding:100px 60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.case-label{font-family:'Outfit',sans-serif;font-size:11px;letter-spacing:4px;color:#3b82f6;text-transform:uppercase;margin-bottom:24px}
+.case h2{font-family:'Outfit',sans-serif;font-size:40px;font-weight:900;color:#f8fafc;line-height:1.2;letter-spacing:-1px;margin-bottom:20px}
+.case-text{color:#94a3b8;line-height:1.8;font-size:14px;margin-bottom:36px}
+.case-cta{background:#3b82f6;color:#fff;border:none;padding:16px 36px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.metric{background:#1e293b;padding:36px;text-align:center}
+.metric-num{font-family:'Outfit',sans-serif;font-size:44px;font-weight:900;color:#3b82f6}
+.metric-label{font-size:12px;color:#64748b;margin-top:8px}
+footer{background:#020617;text-align:center;padding:36px;font-family:'Outfit',sans-serif;font-size:12px;color:#1e3a5f;letter-spacing:2px}
+</style></head><body>
+<nav>
+  <div class="nav-logo">${svc || '<span>S</span>ervice'}</div>
+  <div class="nav-right">
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">Product</a>
+    <a class="nav-link" href="#">Pricing</a>
+    <button class="nav-cta">Get Started</button>
+  </div>
+</nav>
+<div class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-slash"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🔵 New Release 2025</div>
+    <h1>Next<br>Level<br><span class="accent">Solution.</span></h1>
+    <div class="hero-sub">テクノロジーの力で、あなたのビジネスを<br>次のステージへ。今すぐ無料で体験。</div>
+    <div class="hero-actions">
+      <button class="btn-primary">無料トライアル開始 →</button>
+      <button class="btn-ghost">▶ デモを見る</button>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">300+</div><div class="stat-label">導入企業数</div></div>
+    <div class="stat"><div class="stat-num">98%</div><div class="stat-label">顧客満足度</div></div>
+  </div>
+</div>
+<div class="features">
+  <div class="features-header">
+    <div class="features-title">なぜ選ばれるのか</div>
+    <div class="features-sub">業界をリードする3つの強みが、あなたの課題を解決します</div>
+  </div>
+  <div class="feat-list">
+    <div class="feat-item"><div class="feat-num">01</div><div class="feat-title">高速処理</div><div class="feat-bar"></div><div class="feat-text">従来比10倍のスピード。待ち時間ゼロで、業務効率を最大化します。</div></div>
+    <div class="feat-item"><div class="feat-num">02</div><div class="feat-title">AI最適化</div><div class="feat-bar"></div><div class="feat-text">機械学習があなたの使い方を学習し、常に最適な提案を行います。</div></div>
+    <div class="feat-item"><div class="feat-num">03</div><div class="feat-title">完全連携</div><div class="feat-bar"></div><div class="feat-text">既存ツールと即座に統合。乗り換えコストゼロで導入できます。</div></div>
+  </div>
+</div>
+<div class="case">
+  <div>
+    <div class="case-label">Success Story</div>
+    <h2>導入企業の<br>売上が平均<br>2.4倍に。</h2>
+    <div class="case-text">導入から3ヶ月で成果が出始め、1年後には売上が大幅に改善。多くの企業でROIが実証されています。</div>
+    <button class="case-cta">事例を詳しく見る →</button>
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-num">2.4x</div><div class="metric-label">平均売上倍率</div></div>
+    <div class="metric"><div class="metric-num">67%</div><div class="metric-label">工数削減</div></div>
+    <div class="metric"><div class="metric-num">3ヶ月</div><div class="metric-label">平均ROI達成期間</div></div>
+    <div class="metric"><div class="metric-num">24h</div><div class="metric-label">サポート対応</div></div>
+  </div>
+</div>
+<footer>© 2025 ${svc || 'SERVICE'} — POWERED BY NEXT GENERATION AI</footer>
+</body></html>`
+  },
+
+  // D: ナチュラル — 明るいグリーン、余白、写真枠、オーガニック感
+  natural: {
+    name: 'ナチュラル・オーガニック',
+    desc: 'グリーン・たっぷりの余白・温かみのある写真枠型',
+    html: (svc) => `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700;900&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f8faf5;color:#1e3a1a;font-family:'Noto Sans JP',sans-serif;min-height:100vh}
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 60px;background:#fff}
+.nav-logo{font-family:'Noto Serif JP',serif;font-size:18px;color:#3a6e35;display:flex;align-items:center;gap:8px}
+.nav-logo::before{content:'🌿';font-size:20px}
+.nav-links{display:flex;gap:36px}
+.nav-links a{font-size:13px;color:#888;text-decoration:none}
+.nav-cta{background:#3a6e35;color:#fff;padding:10px 24px;border-radius:100px;font-size:13px;cursor:pointer;border:none;font-family:inherit}
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:560px}
+.hero-left{background:#e8f5e0;padding:100px 60px;display:flex;flex-direction:column;justify-content:center}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#3a6e35;font-size:12px;font-weight:700;padding:6px 16px;border-radius:100px;margin-bottom:32px;width:fit-content}
+.hero h1{font-family:'Noto Serif JP',serif;font-size:46px;font-weight:700;line-height:1.4;color:#1e3a1a;margin-bottom:20px}
+.hero h1 em{color:#3a6e35;font-style:normal;display:block}
+.hero-sub{font-size:15px;color:#5a7a52;line-height:2;margin-bottom:40px}
+.hero-btns{display:flex;gap:14px}
+.btn-main{background:#3a6e35;color:#fff;border:none;padding:16px 36px;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-line{background:#06c755;color:#fff;border:none;padding:16px 36px;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit}
+.hero-right{background:#d4edcc;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px}
+.hero-img{background:linear-gradient(135deg,#c8e6c0,#a8d4a0);display:flex;align-items:center;justify-content:center;font-size:72px}
+.hero-img.tall{grid-row:span 2}
+.concept{padding:100px 60px;background:#fff}
+.concept-inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.concept-img{background:linear-gradient(135deg,#e8f5e0,#d4edcc);border-radius:24px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:100px}
+.concept-label{font-size:11px;letter-spacing:4px;color:#76b86e;text-transform:uppercase;margin-bottom:16px}
+.concept h2{font-family:'Noto Serif JP',serif;font-size:36px;font-weight:700;line-height:1.5;margin-bottom:20px;color:#1e3a1a}
+.concept-text{font-size:14px;color:#5a7a52;line-height:2;margin-bottom:32px}
+.concept-link{display:flex;align-items:center;gap:8px;color:#3a6e35;font-size:14px;font-weight:700;cursor:pointer}
+.products{background:#f8faf5;padding:100px 60px}
+.products h2{font-family:'Noto Serif JP',serif;font-size:36px;text-align:center;margin-bottom:12px;color:#1e3a1a}
+.products-sub{text-align:center;color:#888;font-size:14px;margin-bottom:56px}
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.product-card{background:#fff;border-radius:20px;overflow:hidden}
+.product-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:64px}
+.product-body{padding:24px}
+.product-tag{display:inline-block;background:#e8f5e0;color:#3a6e35;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;margin-bottom:10px}
+.product-name{font-size:16px;font-weight:700;margin-bottom:6px}
+.product-desc{font-size:12px;color:#888;line-height:1.7;margin-bottom:14px}
+.product-price{font-size:20px;font-weight:900;color:#3a6e35}
+.product-price span{font-size:12px;color:#aaa;font-weight:400}
+.philosophy{background:#3a6e35;padding:100px 60px;text-align:center}
+.philosophy h2{font-family:'Noto Serif JP',serif;font-size:40px;color:#fff;margin-bottom:20px;line-height:1.4}
+.philosophy-text{font-size:15px;color:#a8d4a0;line-height:2;margin-bottom:48px;max-width:560px;margin-left:auto;margin-right:auto}
+.philosophy button{background:#fff;color:#3a6e35;border:none;padding:18px 56px;border-radius:100px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+footer{background:#e8f5e0;text-align:center;padding:40px;font-size:12px;color:#76b86e}
+</style></head><body>
+<nav>
+  <div class="nav-logo">${svc || 'Organic Brand'}</div>
+  <div class="nav-links"><a href="#">Brand Story</a><a href="#">Products</a><a href="#">Sustainability</a><a href="#">Blog</a></div>
+  <button class="nav-cta">購入する →</button>
+</nav>
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">🌿 Certified Organic</div>
+    <h1>自然の恵みを、<br><em>毎日の暮らしへ。</em></h1>
+    <div class="hero-sub">化学物質を使わない、<br>地球と体にやさしい選択。<br>100年後も続けられるものづくりを。</div>
+    <div class="hero-btns">
+      <button class="btn-main">商品を見る →</button>
+      <button class="btn-line">📱 LINEで相談</button>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-img tall">🌿</div>
+    <div class="hero-img">🌸</div>
+    <div class="hero-img">🍃</div>
+  </div>
+</div>
+<div class="concept">
+  <div class="concept-inner">
+    <div class="concept-img">🌱</div>
+    <div>
+      <div class="concept-label">Our Philosophy</div>
+      <h2>「本当に良いもの」<br>だけを届けたい</h2>
+      <div class="concept-text">私たちは、原材料の産地から製造工程まで、すべてにこだわり抜いています。化学肥料・農薬不使用。サステナブルな製造方法を追求し続けています。</div>
+      <div class="concept-link">ブランドストーリーを読む →</div>
+    </div>
+  </div>
+</div>
+<div class="products">
+  <h2>人気商品</h2>
+  <div class="products-sub">自然の力をそのままに。毎日のルーティンに取り入れて。</div>
+  <div class="product-grid">
+    <div class="product-card"><div class="product-img" style="background:linear-gradient(135deg,#e8f5e0,#c8e6c0)">🌿</div><div class="product-body"><div class="product-tag">BESTSELLER</div><div class="product-name">オーガニックセラム</div><div class="product-desc">厳選植物エキス配合。肌本来の力を引き出します。</div><div class="product-price">¥4,980 <span>税込</span></div></div></div>
+    <div class="product-card"><div class="product-img" style="background:linear-gradient(135deg,#fff8e0,#fff0c0)">🍯</div><div class="product-body"><div class="product-tag">NEW</div><div class="product-name">ハーブティーセット</div><div class="product-desc">国産ハーブをブレンド。毎晩のリラックスタイムに。</div><div class="product-price">¥2,980 <span>税込</span></div></div></div>
+    <div class="product-card"><div class="product-img" style="background:linear-gradient(135deg,#e0f4ff,#c0e8ff)">🌸</div><div class="product-body"><div class="product-tag">POPULAR</div><div class="product-name">フローラルミスト</div><div class="product-desc">天然花水で潤いを。香りも心地よく一日中使える。</div><div class="product-price">¥3,480 <span>税込</span></div></div></div>
+  </div>
+</div>
+<div class="philosophy">
+  <h2>地球にやさしく、<br>あなたにやさしく。</h2>
+  <div class="philosophy-text">私たちの製品は、すべてエコパッケージを採用。ゴミを減らし、リサイクルしやすい設計にこだわっています。買うことが、地球への小さな貢献になる。</div>
+  <button>サステナビリティの取り組みを見る</button>
+</div>
+<footer>© 2025 ${svc || 'Organic Brand'} — Crafted with love for the planet 🌍</footer>
+</body></html>`
+  }
+};
+
+const TONE_ORDER = {
+  luxury:   ['luxury','cool','friendly','natural'],
+  friendly: ['friendly','natural','cool','luxury'],
+  cool:     ['cool','luxury','natural','friendly'],
+  natural:  ['natural','friendly','luxury','cool'],
+  trust:    ['luxury','cool','natural','friendly'],
+  pop:      ['friendly','natural','cool','luxury'],
+};
+
+function selectCard(id) {
+  document.querySelectorAll('.lp-card').forEach(c => c.classList.remove('selected'));
+  const c = document.getElementById('card_' + id);
+  if (c) { c.classList.add('selected'); c.querySelector('input').checked = true; }
+}
+
+function renderCards() {
+  const svc   = document.getElementById('serviceName')?.value || 'サービス名';
+  const tone  = document.querySelector('input[name="tone"]:checked')?.value || 'luxury';
+  const keys  = TONE_ORDER[tone] || ['luxury','friendly','cool','natural'];
+  const grid  = document.getElementById('lpGrid');
+
+  // calc scale from iframe-wrap width
+  grid.innerHTML = keys.map(key => {
+    const t = TEMPLATES[key];
+    return `
+      <label class="lp-card" id="card_${key}" onclick="selectCard('${key}')">
+        <input type="radio" name="lpPattern" value="${key}">
+        <div class="lp-badge">✓ 選択中</div>
+        <div class="iframe-wrap" id="wrap_${key}">
+          <iframe id="frame_${key}" srcdoc="${t.html(svc).replace(/"/g,'&quot;')}"></iframe>
+        </div>
+        <div class="lp-meta">
+          <div class="lp-meta-name">${t.name}</div>
+          <div class="lp-meta-desc">${t.desc}</div>
+        </div>
+      </label>`;
+  }).join('');
+
+  // scale each iframe to fit its wrapper
+  requestAnimationFrame(() => {
+    keys.forEach(key => {
+      const wrap  = document.getElementById('wrap_' + key);
+      const frame = document.getElementById('frame_' + key);
+      if (!wrap || !frame) return;
+      const w = wrap.clientWidth;
+      const scale = w / 900;
+      frame.style.transform = `scale(${scale})`;
+      frame.style.height = (wrap.clientHeight / scale) + 'px';
+    });
+  });
+}
+
+function goToPreview() { renderCards(); current = 6; showStep(6); }
+
+async function submitForm() {
+  const data = {
+    industry:      document.querySelector('input[name="industry"]:checked')?.value || '',
+    serviceName:   document.getElementById('serviceName')?.value || '',
+    goal:          document.querySelector('input[name="goal"]:checked')?.value || '',
+    targetAudience: document.querySelector('input[name="target"]:checked')?.value || '',
+    tone:          document.querySelector('input[name="tone"]:checked')?.value || '',
+    color:         document.querySelector('input[name="color"]:checked')?.value || '',
+    logo:          document.querySelector('input[name="logo"]:checked')?.value || '',
+    photo:         document.querySelector('input[name="photo"]:checked')?.value || '',
+    copy:          document.querySelector('input[name="copy"]:checked')?.value || '',
+    lpPattern:     document.querySelector('input[name="lpPattern"]:checked')?.value || '',
+    companyName:   document.getElementById('companyName')?.value || '',
+    contactName:   document.getElementById('contactName')?.value || '',
+    email:         document.getElementById('email')?.value || '',
+  };
+
+  try {
+    await fetch('/webhook/form', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (e) {
+    console.error('送信エラー:', e);
+  }
+
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('complete').classList.add('active');
+  for (let i = 1; i <= TOTAL; i++) document.getElementById('dot' + i).className = 'progress-dot done';
+  document.getElementById('stepNum').textContent = '完了';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+updateProgress(1);
+</script>
+</body>
+</html>
