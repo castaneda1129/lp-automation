@@ -72,11 +72,12 @@ async function runAutomationFlow(data) {
   } catch (err) {
     console.error('❌ フローエラー:', err.message);
     // Discordにエラー通知
-    const { notify } = require('./lib/discord');
-    await notify(
-      process.env.DISCORD_WEBHOOK_URL,
-      `❌ **LP自動化フローでエラーが発生しました**\n\`\`\`${err.message}\`\`\``
-    ).catch(() => {});
+    const { getBot } = require('./lib/discord');
+    try {
+      const bot = getBot();
+      const channel = await bot.channels.fetch(process.env.DISCORD_CHANNEL_ID);
+      await channel.send(`❌ **LP自動化フローでエラーが発生しました**\n\`\`\`${err.message}\`\`\``);
+    } catch (_) {}
   }
 }
 
