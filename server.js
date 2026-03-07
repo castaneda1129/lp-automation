@@ -6,6 +6,9 @@ const { deployToVercel } = require('./lib/vercel-deploy');
 const { sendDeliveryEmail, sendResearchEmail } = require('./lib/mailer');
 const { requestResearch } = require('./lib/nakamura-research');
 const { createToken, getToken, markTokenUsed } = require('./lib/revision-tokens');
+const { createPaymentLink, popOrder } = require('./lib/stripe');
+const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const path = require('path');
 const app = express();
@@ -71,6 +74,45 @@ app.post('/webhook/revise', async (req, res) => {
 });
 
 /**
+ * Stripe Webhook（決済完了検知）
+ * POST /webhook/stripe
+ */
+app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('Stripe Webhook署名エラー:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const orderId = session.metadata?.orderId;
+    console.log(`💳 決済完了: orderId=${orderId}`);
+
+    if (orderId) {
+      const formData = popOrder(orderId);
+      if (formData) {
+        console.log('📦 フォームデータ復元・LP生成開始');
+        runAutomationFlow(formData).catch(err => console.error('フローエラー:', err));
+      }
+    }
+  }
+
+  res.json({ received: true });
+});
+
+/**
+ * 決済完了後リダイレクトページ
+ * GET /payment-complete
+ */
+app.get('/payment-complete', (req, res) => {
+  res.send(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>お支払い完了</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f7fa}div{text-align:center;padding:40px}h1{color:#0070f3}p{color:#555;line-height:1.7}</style></head><body><div><h1>✅ お支払いありがとうございます</h1><p>ご入金を確認しました。<br>LP制作を開始します。<br>完成次第メールでご連絡いたします（通常3〜5営業日）。</p></div></body></html>`);
+});
+
+/**
  * ヒアリングフォーム受信 Webhook
  * POST /webhook/form
  */
@@ -100,8 +142,16 @@ async function runAutomationFlow(data) {
     console.log('Step 2: 中村リサーチ');
     const researchResult = await requestResearch(data);
 
-    // Step 2.5: リサーチ結果をクライアントにメール（決済リンク付き）
+    // Step 2.5: 動的決済リンク生成 & リサーチメール送信
     const clientEmail = data.email || data.contactEmail || data.contact;
+    let paymentUrl = process.env.STRIPE_PAYMENT_LINK_LP; // フォールバック
+    try {
+      const { url } = await createPaymentLink(data);
+      paymentUrl = url;
+    } catch (err) {
+      console.warn('⚠️ 動的決済リンク生成失敗（固定リンクを使用）:', err.message);
+    }
+
     if (researchResult && clientEmail) {
       console.log('Step 2.5: リサーチメール送信');
       await sendResearchEmail({
@@ -109,7 +159,7 @@ async function runAutomationFlow(data) {
         businessName: data.businessName || data.companyName || data.serviceName,
         businessType: data.businessType || 'ビジネス',
         researchSummary: researchResult,
-        paymentUrl: process.env.STRIPE_PAYMENT_LINK_LP,
+        paymentUrl,
       }).catch(err => console.warn('⚠️ リサーチメール送信失敗（フロー継続）:', err.message));
     }
 
