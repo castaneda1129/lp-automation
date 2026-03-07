@@ -230,11 +230,11 @@
                   'デザイン・色・フォント',
                   'その他'
                 ].map(s => `
-                  <label class="section-check" onclick="toggleCheck(this)">
-                    <input type="checkbox" name="sections" value="${s}">
+                  <div class="section-check" data-value="${s}" onclick="toggleCheck(this)">
+                    <input type="checkbox" name="sections" value="${s}" style="display:none">
                     <span class="check-icon"></span>
                     <span class="section-label">${s}</span>
-                  </label>`).join('')}
+                  </div>`).join('')}
               </div>
             </div>
 
@@ -257,7 +257,7 @@
 
       document.getElementById('revise-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const sections = [...document.querySelectorAll('input[name="sections"]:checked')].map(el => el.value);
+        const sections = [...document.querySelectorAll('.section-check.checked')].map(el => el.dataset.value);
         const detail = document.getElementById('detail').value.trim();
         const reference = document.getElementById('reference').value.trim();
 

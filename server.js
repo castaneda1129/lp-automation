@@ -3,7 +3,7 @@ const express = require('express');
 const { notifyFormReceived, notifyApprovalRequest } = require('./lib/discord');
 const { generateLP } = require('./lib/lp-generator');
 const { deployToVercel } = require('./lib/vercel-deploy');
-const { sendDeliveryEmail, sendResearchEmail } = require('./lib/mailer');
+const { sendDeliveryEmail, sendResearchEmail, sendAcknowledgmentEmail } = require('./lib/mailer');
 const { requestResearch } = require('./lib/nakamura-research');
 const { createToken, getToken, markTokenUsed } = require('./lib/revision-tokens');
 const { createPaymentLink, popOrder } = require('./lib/stripe');
@@ -134,16 +134,22 @@ app.post('/webhook/form', async (req, res) => {
  */
 async function runAutomationFlow(data) {
   try {
-    // Step 1: Discord通知
-    console.log('Step 1: Discord通知');
+    // Step 1: Discord通知 + 受付完了メール
+    console.log('Step 1: Discord通知・受付完了メール');
     await notifyFormReceived(data);
+    const clientEmail = data.email || data.contactEmail || data.contact;
+    if (clientEmail) {
+      await sendAcknowledgmentEmail({
+        to: clientEmail,
+        businessName: data.businessName || data.companyName || data.serviceName,
+      }).catch(err => console.warn('⚠️ 受付完了メール失敗:', err.message));
+    }
 
     // Step 2: 中村リサーチ
     console.log('Step 2: 中村リサーチ');
     const researchResult = await requestResearch(data);
 
     // Step 2.5: 動的決済リンク生成 & リサーチメール送信
-    const clientEmail = data.email || data.contactEmail || data.contact;
     let paymentUrl = process.env.STRIPE_PAYMENT_LINK_LP; // フォールバック
     try {
       const { url } = await createPaymentLink(data);
@@ -152,7 +158,7 @@ async function runAutomationFlow(data) {
       console.warn('⚠️ 動的決済リンク生成失敗（固定リンクを使用）:', err.message);
     }
 
-    if (researchResult && clientEmail) {
+    if (clientEmail) {
       console.log('Step 2.5: リサーチメール送信');
       await sendResearchEmail({
         to: clientEmail,
@@ -186,7 +192,7 @@ async function runAutomationFlow(data) {
     }
 
     // Step 5: 修正トークン発行
-    const slug = data.slug || data.businessName || 'lp';
+    const slug = data.slug || data.businessName || data.serviceName || 'lp';
     const revisionToken = createToken(slug, deployUrl, clientEmail);
     const revisionUrl = `https://webhook.mk-lab.tech/revise/${revisionToken}`;
     console.log(`📝 修正フォームURL: ${revisionUrl}`);
