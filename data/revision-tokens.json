@@ -5,5 +5,13 @@
     "clientEmail": "kaichi@mk-lab.tech",
     "used": false,
     "createdAt": "2026-03-07T11:53:25.792Z"
+  },
+  "14db77575432a9cae745e8eace4b6173": {
+    "slug": "ととのいサロン Hana",
+    "deployUrl": "https://lp-hana.mk-lab.tech",
+    "clientEmail": "kaichi@mk-lab.tech",
+    "used": true,
+    "createdAt": "2026-03-07T12:14:28.440Z",
+    "usedAt": "2026-03-07T12:15:54.850Z"
   }
 }
