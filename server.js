@@ -100,14 +100,16 @@ async function runAutomationFlow(data) {
     console.log('Step 2: 中村リサーチ');
     const researchResult = await requestResearch(data);
 
-    // Step 2.5: リサーチ結果をクライアントにメール
-    if (researchResult && (data.email || data.contactEmail)) {
+    // Step 2.5: リサーチ結果をクライアントにメール（決済リンク付き）
+    const clientEmail = data.email || data.contactEmail || data.contact;
+    if (researchResult && clientEmail) {
       console.log('Step 2.5: リサーチメール送信');
       await sendResearchEmail({
-        to: data.email || data.contactEmail,
+        to: clientEmail,
         businessName: data.businessName || data.companyName || data.serviceName,
         businessType: data.businessType || 'ビジネス',
         researchSummary: researchResult,
+        paymentUrl: process.env.STRIPE_PAYMENT_LINK_LP,
       }).catch(err => console.warn('⚠️ リサーチメール送信失敗（フロー継続）:', err.message));
     }
 
@@ -134,7 +136,6 @@ async function runAutomationFlow(data) {
     }
 
     // Step 5: 修正トークン発行
-    const clientEmail = data.email || data.contactEmail || data.contact;
     const slug = data.slug || data.businessName || 'lp';
     const revisionToken = createToken(slug, deployUrl, clientEmail);
     const revisionUrl = `https://webhook.mk-lab.tech/revise/${revisionToken}`;
