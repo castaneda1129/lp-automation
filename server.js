@@ -46,9 +46,14 @@ async function runAutomationFlow(data) {
     console.log('Step 2: LP生成');
     const html = await generateLP(data);
 
+    // Step 2.5: LP品質レビュー＆自動修正
+    console.log('Step 2.5: LP品質レビュー');
+    const { reviewAndFixLP } = require('./lib/lp-reviewer');
+    const finalHtml = await reviewAndFixLP(html, data);
+
     // Step 3: Vercelデプロイ
     console.log('Step 3: Vercelデプロイ');
-    const deployUrl = await deployToVercel(html, data.serviceName || 'lp');
+    const deployUrl = await deployToVercel(finalHtml, data.serviceName || 'lp');
 
     // Step 4: Discord承認フロー
     console.log('Step 4: Discord承認待ち');
