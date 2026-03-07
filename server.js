@@ -67,7 +67,7 @@ async function runAutomationFlow(data) {
     // Step 5: クライアントにメール送信
     console.log('Step 5: メール送信');
     await sendDeliveryEmail({
-      to: data.email,
+      to: data.email || data.contact,
       companyName: data.companyName,
       serviceName: data.serviceName,
       deployUrl,
