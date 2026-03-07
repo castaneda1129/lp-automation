@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LP詳細入力フォーム | MK-LAB</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: #f5f7fa; color: #1a1a2e; margin: 0; padding: 0; }
+    .header { background: #fff; border-bottom: 1px solid #e8eaf0; padding: 16px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+    .logo { font-weight: 700; font-size: 1.1rem; color: #0070f3; text-decoration: none; }
+    .badge { background: #e8f4ff; color: #0070f3; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+    .container { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    .preview-bar { background: #fff; border: 1px solid #e8eaf0; border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .preview-bar .label { font-size: 0.8rem; color: #999; white-space: nowrap; }
+    .preview-bar a { color: #0070f3; font-size: 0.875rem; word-break: break-all; text-decoration: none; }
+
+    .intro { background: #fff; border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .intro h1 { font-size: 1.3rem; margin: 0 0 8px; }
+    .intro p { color: #555; font-size: 0.9rem; line-height: 1.7; margin: 0; }
+
+    /* セクションカード */
+    .section-card { background: #fff; border-radius: 16px; padding: 28px 32px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .section-card.active { border: 2px solid #0070f3; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .section-num { width: 32px; height: 32px; background: #0070f3; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; flex-shrink: 0; }
+    .section-title-text { font-size: 1rem; font-weight: 700; margin: 0; }
+    .section-desc { font-size: 0.8rem; color: #999; margin: 0; }
+
+    .form-group { margin-bottom: 20px; }
+    label.field-label { display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: #333; }
+    label.field-label .req { background: #ff4757; color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: 500; }
+    label.field-label .opt { color: #bbb; font-size: 0.75rem; font-weight: 400; margin-left: 6px; }
+    label.field-label .hint { color: #999; font-size: 0.75rem; font-weight: 400; display: block; margin-top: 2px; }
+
+    input[type="text"], input[type="number"], textarea, select {
+      width: 100%; border: 2px solid #e8eaf0; border-radius: 10px; padding: 12px 14px;
+      font-family: inherit; font-size: 0.9rem; line-height: 1.6; color: #1a1a2e;
+      transition: border-color 0.2s; background: #fff;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #0070f3; }
+    textarea { resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #bbb; }
+
+    .voice-group { border: 2px solid #e8eaf0; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .voice-group:last-child { margin-bottom: 0; }
+    .voice-num { font-size: 0.75rem; color: #0070f3; font-weight: 700; margin-bottom: 10px; }
+
+    .plan-group { border: 2px solid #e8eaf0; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+
+    .add-btn { background: none; border: 2px dashed #ccc; border-radius: 10px; color: #999; padding: 10px; width: 100%; font-family: inherit; font-size: 0.875rem; cursor: pointer; transition: border-color 0.2s, color 0.2s; margin-top: 8px; }
+    .add-btn:hover { border-color: #0070f3; color: #0070f3; }
+
+    .faq-group { border: 2px solid #e8eaf0; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+
+    .submit-area { background: #fff; border-radius: 16px; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-top: 24px; }
+    .submit-btn { width: 100%; background: #0070f3; color: #fff; border: none; border-radius: 12px; padding: 18px; font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: background 0.2s; }
+    .submit-btn:hover { background: #0060d4; }
+    .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .submit-note { text-align: center; color: #999; font-size: 0.8rem; margin-top: 12px; line-height: 1.6; }
+
+    @media (max-width: 600px) {
+      .section-card { padding: 20px; }
+      .intro { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a class="logo" href="https://mk-lab-peach.vercel.app">MK-LAB</a>
+    <span class="badge">LP詳細入力フォーム</span>
+  </div>
+
+  <div class="container">
+    <div class="preview-bar">
+      <span class="label">イメージLP</span>
+      <a href="{{PREVIEW_URL}}" target="_blank">{{PREVIEW_URL}} ↗</a>
+    </div>
+
+    <div class="intro">
+      <h1>LP詳細内容を入力してください</h1>
+      <p>イメージLPをご確認いただき、各セクションに実際の情報をご入力ください。<br>
+      入力内容をもとに本番LPを制作します。空欄の項目はMK-LABが最適な内容を考案します。</p>
+    </div>
+
+    <form id="details-form">
+
+      <!-- Section 1: ヒーロー -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-num">1</div>
+          <div>
+            <p class="section-title-text">ファーストビュー（ヒーロー）</p>
+            <p class="section-desc">最初に目に入るキャッチコピーと背景</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">キャッチコピーの方向性<span class="opt">任意</span>
+            <span class="hint">例：「3ヶ月で-10kg」「老後2,000万円の不安をなくす」など、伝えたい核心</span>
+          </label>
+          <textarea name="hero_copy" rows="3" placeholder="例：「一人では続かないから、プロがいる。」のような強いメッセージや、伝えたいことを自由に"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-label">背景写真のイメージ<span class="opt">任意</span>
+            <span class="hint">例：「筋トレ中の写真」「都市の夜景」「清潔感のあるオフィス」など</span>
+          </label>
+          <input type="text" name="hero_image" placeholder="例：明るいジムでトレーニングしている写真">
+        </div>
+        <div class="form-group">
+          <label class="field-label">CTAボタンのテキスト<span class="opt">任意</span></label>
+          <input type="text" name="cta_text" placeholder="例：無料体験を予約する・今すぐ申し込む">
+        </div>
+      </div>
+
+      <!-- Section 2: 実績・数字 -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-num">2</div>
+          <div>
+            <p class="section-title-text">実績・数字</p>
+            <p class="section-desc">信頼感を高める具体的な数字</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">アピールしたい実績・数字<span class="opt">任意</span>
+            <span class="hint">例：「累計500名達成」「満足度98%」「3ヶ月で平均-8kg」など。複数OK</span>
+          </label>
+          <textarea name="achievements" rows="4" placeholder="例：&#10;・累計参加者500名以上&#10;・3ヶ月継続率92%&#10;・平均-8.5kg達成"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-label">ビフォーアフター事例<span class="opt">任意</span>
+            <span class="hint">具体的な成功事例があれば記入してください</span>
+          </label>
+          <textarea name="before_after" rows="3" placeholder="例：30代会社員Aさん：3ヶ月で-12kg達成。食事制限なしで理想の体型に"></textarea>
+        </div>
+      </div>
+
+      <!-- Section 3: お客様の声 -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-num">3</div>
+          <div>
+            <p class="section-title-text">お客様の声・testimonial</p>
+            <p class="section-desc">実際の声があると信頼度が大幅アップ</p>
+          </div>
+        </div>
+        <div id="voices-container">
+          <div class="voice-group">
+            <div class="voice-num">お客様の声 1</div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label class="field-label">お名前（イニシャルOK）</label>
+              <input type="text" name="voice_name_1" placeholder="例：T.Mさん（30代・会社員）">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="field-label">コメント内容</label>
+              <textarea name="voice_text_1" rows="3" placeholder="例：最初は続くか不安でしたが、トレーナーさんが丁寧に指導してくれて3ヶ月で目標達成できました！"></textarea>
+            </div>
+          </div>
+          <div class="voice-group">
+            <div class="voice-num">お客様の声 2</div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label class="field-label">お名前（イニシャルOK）</label>
+              <input type="text" name="voice_name_2" placeholder="例：K.Sさん（40代・主婦）">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="field-label">コメント内容</label>
+              <textarea name="voice_text_2" rows="3" placeholder="例：他のジムは続かなかったのに、ここは楽しく通えています"></textarea>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-btn" onclick="addVoice()">＋ お客様の声を追加</button>
+      </div>
+
+      <!-- Section 4: 料金・プラン -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-num">4</div>
+          <div>
+            <p class="section-title-text">料金・プラン</p>
+            <p class="section-desc">明確な料金提示がCV率を上げる</p>
+          </div>
+        </div>
+        <div id="plans-container">
+          <div class="plan-group">
+            <div class="voice-num">プラン 1</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="form-group" style="margin:0">
+                <label class="field-label">プラン名</label>
+                <input type="text" name="plan_name_1" placeholder="例：ベーシックプラン">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="field-label">料金</label>
+                <input type="text" name="plan_price_1" placeholder="例：月額29,800円">
+              </div>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="field-label">プラン内容・特典</label>
+              <textarea name="plan_detail_1" rows="2" placeholder="例：週2回・60分・食事指導付き・LINEサポート"></textarea>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-btn" onclick="addPlan()">＋ プランを追加</button>
+        <div class="form-group" style="margin-top:16px;margin-bottom:0">
+          <label class="field-label">料金に関する補足<span class="opt">任意</span>
+            <span class="hint">例：「分割払い対応」「入会金無料キャンペーン中」など</span>
+          </label>
+          <input type="text" name="price_note" placeholder="例：初月50%OFFキャンペーン実施中">
+        </div>
+      </div>
+
+      <!-- Section 5: FAQ -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-num">5</div>
+          <div>
+            <p class="section-title-text">よくある質問（FAQ）</p>
+            <p class="section-desc">購買の不安を先回りして解消する</p>
+          </div>
+        </div>
+        <div id="faqs-container">
+          <div class="faq-group">
+            <div class="voice-num">Q&A 1</div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label class="field-label">質問</label>
+              <input type="text" name="faq_q_1" placeholder="例：運動が苦手でも大丈夫ですか？">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="field-label">回答</label>
+              <textarea name="faq_a_1" rows="2" placeholder="例：はい、初心者の方でも安心してご参加いただけます。トレーナーが一からサポートします。"></textarea>
+            </div>
+          </div>
+          <div class="faq-group">
+            <div class="voice-num">Q&A 2</div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label class="field-label">質問</label>
+              <input type="text" name="faq_q_2" placeholder="例：途中でやめたくなったら？">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="field-label">回答</label>
+              <textarea name="faq_a_2" rows="2" placeholder="例：いつでも解約可能です。違約金は一切ございません。"></textarea>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-btn" onclick="addFaq()">＋ Q&Aを追加</button>
+      </div>
+
+      <!-- Section 6: その他 -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-num">6</div>
+          <div>
+            <p class="section-title-text">その他・こだわり・追加情報</p>
+            <p class="section-desc">LPに入れたい情報があれば自由に</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">トレーナー・担当者の紹介<span class="opt">任意</span>
+            <span class="hint">顔が見えると信頼度UP。資格・経歴・一言メッセージなど</span>
+          </label>
+          <textarea name="staff_profile" rows="3" placeholder="例：山田 太郎 / 元プロボクサー / NSCA認定パーソナルトレーナー / 「一緒に理想の体を目指しましょう」"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-label">アクセス・開催場所<span class="opt">任意</span></label>
+          <input type="text" name="location" placeholder="例：東京都渋谷区〇〇 / 渋谷駅徒歩3分 / オンライン対応">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="field-label">その他、LPに入れたいこと<span class="opt">任意</span></label>
+          <textarea name="other" rows="4" placeholder="例：&#10;・期間限定キャンペーンを目立たせたい&#10;・LINEで相談受付中と入れてほしい&#10;・ロゴマークの色はブランドカラーの #FF5733 にしてほしい"></textarea>
+        </div>
+      </div>
+
+      <div class="submit-area">
+        <button type="submit" class="submit-btn" id="submit-btn">この内容で本番LPを制作する</button>
+        <p class="submit-note">送信後、3〜5営業日でLP完成のご連絡をします。<br>空欄の項目はMK-LABが最適な内容を考案します。</p>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    const TOKEN = '{{TOKEN}}';
+    let voiceCount = 2;
+    let planCount = 1;
+    let faqCount = 2;
+
+    function addVoice() {
+      voiceCount++;
+      const el = document.createElement('div');
+      el.className = 'voice-group';
+      el.innerHTML = `<div class="voice-num">お客様の声 ${voiceCount}</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="field-label">お名前（イニシャルOK）</label>
+          <input type="text" name="voice_name_${voiceCount}" placeholder="例：A.Bさん（30代）">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="field-label">コメント内容</label>
+          <textarea name="voice_text_${voiceCount}" rows="3" placeholder="お客様の声を入力"></textarea>
+        </div>`;
+      document.getElementById('voices-container').appendChild(el);
+    }
+
+    function addPlan() {
+      planCount++;
+      const el = document.createElement('div');
+      el.className = 'plan-group';
+      el.innerHTML = `<div class="voice-num">プラン ${planCount}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div class="form-group" style="margin:0">
+            <label class="field-label">プラン名</label>
+            <input type="text" name="plan_name_${planCount}" placeholder="例：プレミアムプラン">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="field-label">料金</label>
+            <input type="text" name="plan_price_${planCount}" placeholder="例：月額49,800円">
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="field-label">プラン内容・特典</label>
+          <textarea name="plan_detail_${planCount}" rows="2" placeholder="プランの内容を入力"></textarea>
+        </div>`;
+      document.getElementById('plans-container').appendChild(el);
+    }
+
+    function addFaq() {
+      faqCount++;
+      const el = document.createElement('div');
+      el.className = 'faq-group';
+      el.innerHTML = `<div class="voice-num">Q&A ${faqCount}</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="field-label">質問</label>
+          <input type="text" name="faq_q_${faqCount}" placeholder="よくある質問を入力">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="field-label">回答</label>
+          <textarea name="faq_a_${faqCount}" rows="2" placeholder="回答を入力"></textarea>
+        </div>`;
+      document.getElementById('faqs-container').appendChild(el);
+    }
+
+    document.getElementById('details-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const payload = { token: TOKEN };
+      for (const [key, value] of formData.entries()) {
+        if (value.trim()) payload[key] = value.trim();
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = '送信中...';
+
+      try {
+        const res = await fetch('/webhook/details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (res.ok) {
+          document.querySelector('.container').innerHTML = `
+            <div style="text-align:center;padding:60px 20px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.05)">
+              <div style="font-size:3rem;margin-bottom:16px">🎉</div>
+              <h2 style="color:#0070f3;margin:0 0 12px">ありがとうございます！</h2>
+              <p style="color:#555;line-height:1.7">入力内容を受け付けました。<br>
+              本番LP制作を開始します。<br>
+              完成次第メールでご連絡します（3〜5営業日）。</p>
+            </div>`;
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'この内容で本番LPを制作する';
+          alert(json.message || 'エラーが発生しました');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'この内容で本番LPを制作する';
+        alert('送信に失敗しました。時間をおいて再度お試しください。');
+      }
+    });
+  </script>
+</body>
+</html>

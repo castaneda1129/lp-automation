@@ -3,10 +3,11 @@ const express = require('express');
 const { notifyFormReceived, notifyApprovalRequest } = require('./lib/discord');
 const { generateLP } = require('./lib/lp-generator');
 const { deployToVercel } = require('./lib/vercel-deploy');
-const { sendDeliveryEmail, sendResearchEmail, sendAcknowledgmentEmail, sendPaymentThanksEmail } = require('./lib/mailer');
+const { sendDeliveryEmail, sendResearchEmail, sendAcknowledgmentEmail, sendPaymentThanksEmail, sendDetailsFormEmail } = require('./lib/mailer');
 const { requestResearch } = require('./lib/nakamura-research');
 const { createToken, getToken, markTokenUsed } = require('./lib/revision-tokens');
 const { createPaymentLink, popOrder } = require('./lib/stripe');
+const fs = require('fs');
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const path = require('path');
@@ -97,6 +98,48 @@ app.post('/webhook/revise', async (req, res) => {
 });
 
 /**
+ * 詳細入力フォーム表示
+ * GET /details/:token
+ */
+app.get('/details/:token', (req, res) => {
+  const { token } = req.params;
+  const detailsFile = path.join(__dirname, 'data/details-tokens.json');
+  const tokens = fs.existsSync(detailsFile) ? JSON.parse(fs.readFileSync(detailsFile, 'utf8')) : {};
+  const info = tokens[token];
+  if (!info) return res.status(404).send('このURLは無効です。');
+  if (info.used) return res.send('<h2>このフォームは送信済みです。</h2>');
+  const template = fs.readFileSync(path.join(__dirname, 'public/details-template.html'), 'utf8');
+  const html = template
+    .replace(/\{\{TOKEN\}\}/g, token)
+    .replace(/\{\{PREVIEW_URL\}\}/g, info.previewUrl || '');
+  res.send(html);
+});
+
+/**
+ * 詳細フォーム受信 → 本番LP生成
+ * POST /webhook/details
+ */
+app.post('/webhook/details', async (req, res) => {
+  const { token, ...detailsData } = req.body;
+  const detailsFile = path.join(__dirname, 'data/details-tokens.json');
+  const tokens = fs.existsSync(detailsFile) ? JSON.parse(fs.readFileSync(detailsFile, 'utf8')) : {};
+  const info = tokens[token];
+  if (!info) return res.status(404).json({ message: 'このURLは無効です。' });
+  if (info.used) return res.status(410).json({ message: 'このフォームは送信済みです。' });
+
+  // 使用済みに
+  tokens[token].used = true;
+  tokens[token].usedAt = new Date().toISOString();
+  fs.writeFileSync(detailsFile, JSON.stringify(tokens, null, 2));
+
+  res.json({ status: 'received' });
+
+  // 詳細データをマージして本番LP生成
+  const mergedData = { ...info.formData, ...detailsData, _detailsFilled: true };
+  runPhase3(mergedData).catch(err => console.error('Phase 3エラー:', err));
+});
+
+/**
  * 決済完了後リダイレクトページ
  */
 app.get('/payment-complete', (req, res) => {
@@ -164,8 +207,7 @@ async function runPhase1(data) {
 }
 
 /**
- * Phase 2: LP生成〜デプロイ〜納品
- * Stripe決済完了後に実行
+ * Phase 2: 決済完了 → イメージLP生成 → 詳細フォーム送付
  */
 async function runPhase2(data) {
   try {
@@ -178,48 +220,80 @@ async function runPhase2(data) {
         .catch(err => console.warn('⚠️ 決済完了メール失敗:', err.message));
     }
 
-    // Step 1: LP生成
-    console.log('Phase2 Step 1: LP生成');
+    // Step 1: イメージLP生成（ざっくりデータで）
+    console.log('Phase2 Step 1: イメージLP生成');
     const html = await generateLP(data, data._researchResult || null);
-
-    // Step 2: レビュー・CSS修正
-    console.log('Phase2 Step 2: LP品質レビュー');
     const { reviewAndFixLP } = require('./lib/lp-reviewer');
     const finalHtml = await reviewAndFixLP(html, data);
 
-    // Step 3: Vercelデプロイ
-    console.log('Phase2 Step 3: Vercelデプロイ');
+    // Step 2: Vercelデプロイ（プレビュー用）
+    console.log('Phase2 Step 2: プレビューデプロイ');
     const slug = data.slug || businessName || 'lp';
-    const deployUrl = await deployToVercel(finalHtml, slug);
+    const previewUrl = await deployToVercel(finalHtml, `${slug}-preview`);
 
-    // Step 4: Discord承認
-    console.log('Phase2 Step 4: Discord承認待ち');
-    const approved = await notifyApprovalRequest(deployUrl);
-    if (!approved) {
-      console.log('❌ 承認されませんでした。');
-      return;
-    }
+    // Step 3: 詳細フォームトークン発行
+    const detailsToken = require('crypto').randomBytes(16).toString('hex');
+    const detailsFile = path.join(__dirname, 'data/details-tokens.json');
+    const tokens = fs.existsSync(detailsFile) ? JSON.parse(fs.readFileSync(detailsFile, 'utf8')) : {};
+    tokens[detailsToken] = { previewUrl, formData: data, used: false, createdAt: new Date().toISOString() };
+    fs.writeFileSync(detailsFile, JSON.stringify(tokens, null, 2));
+    const detailsUrl = `https://webhook.mk-lab.tech/details/${detailsToken}`;
 
-    // Step 5: 修正トークン発行 + 納品メール
-    const revisionToken = createToken(slug, deployUrl, clientEmail);
-    const revisionUrl = `https://webhook.mk-lab.tech/revise/${revisionToken}`;
-    console.log(`Phase2 Step 5: 納品メール送信 (修正URL: ${revisionUrl})`);
-    await sendDeliveryEmail({
-      to: clientEmail,
-      companyName: businessName,
-      serviceName: businessName,
-      deployUrl,
-      revisionUrl,
-    });
+    // Step 4: Discord承認（イメージLP確認）
+    console.log('Phase2 Step 3: Discord承認（イメージLP）');
+    await notifyApprovalRequest(previewUrl);
 
-    console.log('🎉 Phase 2完了！全フロー終了');
+    // Step 5: クライアントにイメージLP + 詳細フォーム送付
+    console.log('Phase2 Step 4: 詳細フォームメール送信');
+    await sendDetailsFormEmail({ to: clientEmail, businessName, previewUrl, detailsUrl })
+      .catch(err => console.warn('⚠️ 詳細フォームメール失敗:', err.message));
+
+    console.log('✅ Phase 2完了。詳細フォーム送付済み');
   } catch (err) {
     console.error('❌ Phase 2エラー:', err.message);
     try {
       const { getBot } = require('./lib/discord');
       const bot = getBot();
       const channel = await bot.channels.fetch(process.env.DISCORD_CHANNEL_ID);
-      await channel.send(`❌ **LP生成エラー**\n\`\`\`${err.message}\`\`\``);
+      await channel.send(`❌ **LP生成エラー（Phase 2）**\n\`\`\`${err.message}\`\`\``);
+    } catch (_) {}
+  }
+}
+
+/**
+ * Phase 3: 詳細データで本番LP生成 → 納品
+ */
+async function runPhase3(data) {
+  try {
+    const clientEmail = data.email || data.contactEmail || data.contact;
+    const businessName = data.businessName || data.companyName || data.serviceName;
+    const slug = data.slug || businessName || 'lp';
+
+    console.log('Phase3 Step 1: 本番LP生成');
+    const html = await generateLP(data, data._researchResult || null);
+    const { reviewAndFixLP } = require('./lib/lp-reviewer');
+    const finalHtml = await reviewAndFixLP(html, data);
+
+    console.log('Phase3 Step 2: 本番デプロイ');
+    const deployUrl = await deployToVercel(finalHtml, slug);
+
+    console.log('Phase3 Step 3: Discord承認');
+    const approved = await notifyApprovalRequest(deployUrl);
+    if (!approved) { console.log('❌ 承認なし'); return; }
+
+    const revisionToken = createToken(slug, deployUrl, clientEmail);
+    const revisionUrl = `https://webhook.mk-lab.tech/revise/${revisionToken}`;
+    console.log('Phase3 Step 4: 納品メール送信');
+    await sendDeliveryEmail({ to: clientEmail, companyName: businessName, serviceName: businessName, deployUrl, revisionUrl });
+
+    console.log('🎉 Phase 3完了！全フロー終了');
+  } catch (err) {
+    console.error('❌ Phase 3エラー:', err.message);
+    try {
+      const { getBot } = require('./lib/discord');
+      const bot = getBot();
+      const channel = await bot.channels.fetch(process.env.DISCORD_CHANNEL_ID);
+      await channel.send(`❌ **LP生成エラー（Phase 3）**\n\`\`\`${err.message}\`\`\``);
     } catch (_) {}
   }
 }
