@@ -5,6 +5,7 @@ const { generateLP } = require('./lib/lp-generator');
 const { deployToVercel } = require('./lib/vercel-deploy');
 const { sendDeliveryEmail, sendResearchEmail } = require('./lib/mailer');
 const { requestResearch } = require('./lib/nakamura-research');
+const { createToken, getToken, markTokenUsed } = require('./lib/revision-tokens');
 
 const path = require('path');
 const app = express();
@@ -15,6 +16,58 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ヘルスチェック
 app.get('/', (req, res) => {
   res.json({ status: 'ok', service: 'lp-automation' });
+});
+
+/**
+ * 修正フォーム表示
+ * GET /revise/:token
+ */
+app.get('/revise/:token', (req, res) => {
+  const { token } = req.params;
+  const info = getToken(token);
+  if (!info) return res.status(404).send('このURLは無効です。');
+
+  const template = require('fs').readFileSync(
+    require('path').join(__dirname, 'public/revise-template.html'), 'utf8'
+  );
+  const html = template
+    .replace('{{TOKEN}}', token)
+    .replace('{{DEPLOY_URL}}', info.deployUrl || '')
+    .replace('{{IS_USED}}', info.expired ? 'true' : 'false');
+  res.send(html);
+});
+
+/**
+ * 修正依頼受付
+ * POST /webhook/revise
+ */
+app.post('/webhook/revise', async (req, res) => {
+  const { token, sections, detail, reference } = req.body;
+  const info = getToken(token);
+
+  if (!info) return res.status(404).json({ message: 'このURLは無効です。' });
+  if (info.expired) return res.status(410).json({ message: 'このフォームは使用済みです。' });
+
+  // トークンを使用済みに
+  markTokenUsed(token);
+
+  res.json({ status: 'received' });
+
+  // Discord通知
+  try {
+    const { getBot } = require('./lib/discord');
+    const bot = getBot();
+    const channel = await bot.channels.fetch(process.env.DISCORD_CHANNEL_ID);
+    await channel.send(
+      `✏️ **修正依頼が届きました**\n` +
+      `🔗 LP: ${info.deployUrl}\n` +
+      `📌 セクション: ${sections.join(', ')}\n` +
+      `📝 内容:\n${detail}` +
+      (reference ? `\n🔗 参考: ${reference}` : '')
+    );
+  } catch (err) {
+    console.error('Discord通知失敗:', err.message);
+  }
 });
 
 /**
@@ -80,13 +133,21 @@ async function runAutomationFlow(data) {
       return;
     }
 
-    // Step 5: クライアントにメール送信
-    console.log('Step 5: メール送信');
+    // Step 5: 修正トークン発行
+    const clientEmail = data.email || data.contactEmail || data.contact;
+    const slug = data.slug || data.businessName || 'lp';
+    const revisionToken = createToken(slug, deployUrl, clientEmail);
+    const revisionUrl = `https://webhook.mk-lab.tech/revise/${revisionToken}`;
+    console.log(`📝 修正フォームURL: ${revisionUrl}`);
+
+    // Step 6: クライアントにメール送信
+    console.log('Step 6: メール送信');
     await sendDeliveryEmail({
-      to: data.email || data.contact,
-      companyName: data.companyName,
-      serviceName: data.serviceName,
+      to: clientEmail,
+      companyName: data.companyName || data.businessName,
+      serviceName: data.serviceName || data.businessName,
       deployUrl,
+      revisionUrl,
     });
 
     console.log('🎉 全フロー完了！');

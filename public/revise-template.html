@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LP修正依頼フォーム | MK-LAB</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e8eaf0;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header .logo { font-weight: 700; font-size: 1.1rem; color: #0070f3; text-decoration: none; }
+    .header .badge {
+      background: #fff3cd;
+      color: #856404;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #ffc107;
+    }
+    .container {
+      max-width: 680px;
+      margin: 40px auto;
+      padding: 0 20px 60px;
+    }
+    .preview-bar {
+      background: #fff;
+      border: 1px solid #e8eaf0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .preview-bar .label { font-size: 0.8rem; color: #666; white-space: nowrap; }
+    .preview-bar a {
+      color: #0070f3;
+      font-size: 0.9rem;
+      word-break: break-all;
+      text-decoration: none;
+    }
+    .preview-bar a:hover { text-decoration: underline; }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 8px; }
+    .subtitle { color: #666; font-size: 0.9rem; margin: 0 0 32px; line-height: 1.6; }
+    .form-group { margin-bottom: 28px; }
+    label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      color: #1a1a2e;
+    }
+    label .required {
+      background: #ff4757;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+    label .optional {
+      color: #999;
+      font-size: 0.75rem;
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    /* セクション選択 */
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 480px) { .section-grid { grid-template-columns: 1fr; } }
+    .section-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 2px solid #e8eaf0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .section-check:hover { border-color: #0070f3; background: #f0f7ff; }
+    .section-check input[type="checkbox"] { display: none; }
+    .section-check.checked { border-color: #0070f3; background: #f0f7ff; }
+    .section-check .check-icon {
+      width: 20px; height: 20px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .section-check.checked .check-icon {
+      background: #0070f3;
+      border-color: #0070f3;
+    }
+    .section-check.checked .check-icon::after {
+      content: '';
+      width: 10px; height: 6px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translate(1px, -1px);
+      display: block;
+    }
+    .section-label { font-size: 0.875rem; font-weight: 500; }
+
+    /* テキストエリア */
+    textarea {
+      width: 100%;
+      border: 2px solid #e8eaf0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      resize: vertical;
+      transition: border-color 0.2s;
+      color: #1a1a2e;
+    }
+    textarea:focus { outline: none; border-color: #0070f3; }
+    textarea::placeholder { color: #bbb; }
+
+    /* 送信ボタン */
+    .submit-btn {
+      width: 100%;
+      background: #0070f3;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .submit-btn:hover { background: #0060d4; }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .note {
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: #999;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* 使用済み表示 */
+    .expired-msg {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .expired-msg h2 { color: #999; }
+    .expired-msg p { color: #bbb; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a class="logo" href="https://mk-lab-peach.vercel.app">MK-LAB</a>
+    <span class="badge">修正依頼フォーム（1回限り）</span>
+  </div>
+
+  <div class="container" id="app">
+    <!-- JSで動的に描画 -->
+  </div>
+
+  <script>
+    const TOKEN = '{{TOKEN}}';
+    const DEPLOY_URL = '{{DEPLOY_URL}}';
+    const IS_USED = {{IS_USED}};
+
+    const app = document.getElementById('app');
+
+    if (IS_USED) {
+      app.innerHTML = `
+        <div class="expired-msg">
+          <h2>このフォームは使用済みです</h2>
+          <p>修正依頼は1回限りご利用いただけます。<br>修正し放題プランへのアップグレードをご検討ください。</p>
+          <a href="https://mk-lab-peach.vercel.app" style="color:#0070f3;">MK-LABトップへ</a>
+        </div>`;
+    } else {
+      app.innerHTML = `
+        <div class="preview-bar">
+          <span class="label">あなたのLP</span>
+          <a href="${DEPLOY_URL}" target="_blank">${DEPLOY_URL} ↗</a>
+        </div>
+        <div class="card">
+          <h1>LP修正依頼フォーム</h1>
+          <p class="subtitle">修正したい箇所を選択し、内容を具体的にご記入ください。<br>このフォームは<strong>1回限り</strong>有効です。送信後は修正を承り、再デプロイ後にご連絡します。</p>
+
+          <form id="revise-form">
+            <div class="form-group">
+              <label>修正したいセクション <span class="required">必須</span></label>
+              <div class="section-grid" id="sections">
+                ${[
+                  'キャッチコピー・ヒーロー',
+                  '課題提起・悩み',
+                  '解決策・強み',
+                  'お客様の声・実績',
+                  '料金・プラン',
+                  'お申し込みの流れ',
+                  'よくある質問',
+                  'デザイン・色・フォント',
+                  'その他'
+                ].map(s => `
+                  <label class="section-check" onclick="toggleCheck(this)">
+                    <input type="checkbox" name="sections" value="${s}">
+                    <span class="check-icon"></span>
+                    <span class="section-label">${s}</span>
+                  </label>`).join('')}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="detail">修正内容の詳細 <span class="required">必須</span></label>
+              <textarea id="detail" name="detail" rows="6"
+                placeholder="例：&#10;・キャッチコピーを「3ヶ月で-10kg」から「90日で人生が変わる」に変えたい&#10;・料金セクションに「分割払い可」の記載を追加したい&#10;・ファーストビューの背景写真をもっと暗くしてほしい"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="reference">参考URL・メモ <span class="optional">任意</span></label>
+              <textarea id="reference" name="reference" rows="3"
+                placeholder="参考にしてほしいサイトURLや補足があればご記入ください"></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">修正を依頼する</button>
+            <p class="note">送信後、このフォームは無効になります。<br>修正完了後にメールでご連絡します（通常1〜2営業日）。</p>
+          </form>
+        </div>`;
+
+      document.getElementById('revise-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const sections = [...document.querySelectorAll('input[name="sections"]:checked')].map(el => el.value);
+        const detail = document.getElementById('detail').value.trim();
+        const reference = document.getElementById('reference').value.trim();
+
+        if (sections.length === 0) { alert('修正したいセクションを1つ以上選択してください'); return; }
+        if (!detail) { alert('修正内容の詳細を入力してください'); return; }
+
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.textContent = '送信中...';
+
+        try {
+          const res = await fetch('/webhook/revise', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: TOKEN, sections, detail, reference }),
+          });
+          const json = await res.json();
+          if (res.ok) {
+            app.innerHTML = `
+              <div class="expired-msg">
+                <h2 style="color:#0070f3;">✅ 修正依頼を受け付けました</h2>
+                <p>内容を確認のうえ、1〜2営業日以内に修正・再デプロイいたします。<br>完了次第メールでご連絡します。</p>
+              </div>`;
+          } else {
+            btn.disabled = false;
+            btn.textContent = '修正を依頼する';
+            alert(json.message || 'エラーが発生しました');
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = '修正を依頼する';
+          alert('送信に失敗しました。時間をおいて再度お試しください。');
+        }
+      });
+    }
+
+    function toggleCheck(el) {
+      el.classList.toggle('checked');
+      el.querySelector('input').checked = el.classList.contains('checked');
+    }
+  </script>
+</body>
+</html>
