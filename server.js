@@ -3,7 +3,8 @@ const express = require('express');
 const { notifyFormReceived, notifyApprovalRequest } = require('./lib/discord');
 const { generateLP } = require('./lib/lp-generator');
 const { deployToVercel } = require('./lib/vercel-deploy');
-const { sendDeliveryEmail } = require('./lib/mailer');
+const { sendDeliveryEmail, sendResearchEmail } = require('./lib/mailer');
+const { requestResearch } = require('./lib/nakamura-research');
 
 const path = require('path');
 const app = express();
@@ -42,9 +43,24 @@ async function runAutomationFlow(data) {
     console.log('Step 1: Discord通知');
     await notifyFormReceived(data);
 
-    // Step 2: LP生成
-    console.log('Step 2: LP生成');
-    const html = await generateLP(data);
+    // Step 2: 中村リサーチ
+    console.log('Step 2: 中村リサーチ');
+    const researchResult = await requestResearch(data);
+
+    // Step 2.5: リサーチ結果をクライアントにメール
+    if (researchResult && (data.email || data.contactEmail)) {
+      console.log('Step 2.5: リサーチメール送信');
+      await sendResearchEmail({
+        to: data.email || data.contactEmail,
+        businessName: data.businessName || data.companyName || data.serviceName,
+        businessType: data.businessType || 'ビジネス',
+        researchSummary: researchResult,
+      }).catch(err => console.warn('⚠️ リサーチメール送信失敗（フロー継続）:', err.message));
+    }
+
+    // Step 3: LP生成（リサーチ結果を注入）
+    console.log('Step 3: LP生成');
+    const html = await generateLP(data, researchResult);
 
     // Step 2.5: LP品質レビュー＆自動修正
     console.log('Step 2.5: LP品質レビュー');
