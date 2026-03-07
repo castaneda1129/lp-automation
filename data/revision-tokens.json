@@ -13,5 +13,12 @@
     "used": true,
     "createdAt": "2026-03-07T12:14:28.440Z",
     "usedAt": "2026-03-07T12:15:54.850Z"
+  },
+  "6d5d7a946141ee740b92f1a611941098": {
+    "slug": "テスト",
+    "deployUrl": "https://lp-site.mk-lab.tech",
+    "clientEmail": "kaichidesu1129@gmail.com",
+    "used": false,
+    "createdAt": "2026-03-07T12:27:09.647Z"
   }
 }

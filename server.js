@@ -3,7 +3,7 @@ const express = require('express');
 const { notifyFormReceived, notifyApprovalRequest } = require('./lib/discord');
 const { generateLP } = require('./lib/lp-generator');
 const { deployToVercel } = require('./lib/vercel-deploy');
-const { sendDeliveryEmail, sendResearchEmail, sendAcknowledgmentEmail } = require('./lib/mailer');
+const { sendDeliveryEmail, sendResearchEmail, sendAcknowledgmentEmail, sendPaymentThanksEmail } = require('./lib/mailer');
 const { requestResearch } = require('./lib/nakamura-research');
 const { createToken, getToken, markTokenUsed } = require('./lib/revision-tokens');
 const { createPaymentLink, popOrder } = require('./lib/stripe');
@@ -171,6 +171,12 @@ async function runPhase2(data) {
   try {
     const clientEmail = data.email || data.contactEmail || data.contact;
     const businessName = data.businessName || data.companyName || data.serviceName;
+
+    // Step 0: 決済完了メール
+    if (clientEmail) {
+      await sendPaymentThanksEmail({ to: clientEmail, businessName })
+        .catch(err => console.warn('⚠️ 決済完了メール失敗:', err.message));
+    }
 
     // Step 1: LP生成
     console.log('Phase2 Step 1: LP生成');
