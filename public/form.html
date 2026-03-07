@@ -78,6 +78,17 @@
   .btn-back { background: var(--bg); color: var(--muted); border: none; border-radius: 12px; padding: 15px 18px; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
   .btn-back:hover { background: var(--border); color: var(--text); }
 
+  /* ── STEP 5 FAQ ── */
+  .faq-item { border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; background: var(--white); }
+  .faq-item .faq-label { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.05em; }
+  .faq-item textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 70px; color: var(--text); box-sizing: border-box; margin-bottom: 6px; }
+  .faq-item textarea:focus { outline: none; border-color: var(--accent); }
+  .faq-char { font-size: 11px; color: var(--muted); text-align: right; margin-top: -4px; margin-bottom: 8px; }
+  .faq-delete { font-size: 12px; color: #d00; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .faq-add-btn { width: 100%; border: 2px dashed #ddd; background: #fafafa; border-radius: 12px; padding: 14px; font-size: 13px; color: var(--muted); cursor: pointer; text-align: center; transition: all 0.2s; }
+  .faq-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .faq-add-btn:disabled { opacity: 0.4; cursor: default; }
+
   /* ── STEP 6 ── */
   .preview-intro { background: linear-gradient(135deg,#fff8f5,#fff3ef); border: 1.5px solid rgba(255,107,53,0.2); border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; color: #555; }
   .preview-intro strong { color: var(--accent); }
@@ -159,8 +170,9 @@
       <div class="progress-dot" id="dot4"></div>
       <div class="progress-dot" id="dot5"></div>
       <div class="progress-dot" id="dot6"></div>
+      <div class="progress-dot" id="dot7"></div>
     </div>
-    <div class="progress-text">STEP <span id="stepNum">1</span> / 6</div>
+    <div class="progress-text">STEP <span id="stepNum">1</span> / 7</div>
   </div>
 
   <div class="card">
@@ -317,6 +329,19 @@
     <!-- STEP 5 -->
     <div class="step" id="step5">
       <div class="step-tag">STEP 05</div>
+      <div class="step-title">よくある質問はありますか？💬</div>
+      <div class="step-desc">LP下部のFAQセクションに掲載します。ない場合はそのまま次へ進んでください <span class="optional-tag">任意</span></div>
+      <div id="faqList"></div>
+      <button class="faq-add-btn" id="faqAddBtn" onclick="addFaqItem()">＋ QAを追加（あと<span id="faqRemain">10</span>件）</button>
+      <div class="btn-wrap" style="margin-top:24px">
+        <button class="btn-back" onclick="prevStep(5)">← 戻る</button>
+        <button class="btn-next" onclick="nextStep(5)">次へ進む →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6 (旧STEP 5) -->
+    <div class="step" id="step6">
+      <div class="step-tag">STEP 06</div>
       <div class="step-title">最後に連絡先を教えてください 📩</div>
       <div class="step-desc">制作完了後、こちらにご連絡します</div>
       <div class="field">
@@ -338,14 +363,14 @@
         <textarea placeholder="例：「来週中に欲しい」「初めてで不安です」"></textarea>
       </div>
       <div class="btn-wrap">
-        <button class="btn-back" onclick="prevStep(5)">← 戻る</button>
+        <button class="btn-back" onclick="prevStep(6)">← 戻る</button>
         <button class="btn-next" onclick="goToPreview()">デザインイメージを確認する →</button>
       </div>
     </div>
 
-    <!-- STEP 6 -->
-    <div class="step" id="step6">
-      <div class="step-tag">STEP 06</div>
+    <!-- STEP 7 (旧STEP 6) -->
+    <div class="step" id="step7">
+      <div class="step-tag">STEP 07</div>
       <div class="step-title">イメージに近いのはどれ？🖼</div>
       <div class="preview-intro">
         入力内容をもとに<strong>4つのレイアウトパターン</strong>を用意しました。<br>
@@ -354,7 +379,7 @@
       <div class="lp-grid" id="lpGrid"></div>
       <div class="lp-hint">タップして選択 → そのまま依頼確定できます</div>
       <div class="btn-wrap" style="margin-top:24px">
-        <button class="btn-back" onclick="prevStep(6)">← 戻る</button>
+        <button class="btn-back" onclick="prevStep(7)">← 戻る</button>
         <button class="btn-next" onclick="submitForm()">この方向で依頼を確定する 🎉</button>
       </div>
     </div>
@@ -375,7 +400,7 @@
 </div>
 
 <script>
-const TOTAL = 6;
+const TOTAL = 7;
 let current = 1;
 
 function updateProgress(n) {
@@ -823,7 +848,67 @@ function renderCards() {
   });
 }
 
-function goToPreview() { renderCards(); current = 6; showStep(6); }
+function goToPreview() { renderCards(); current = 7; showStep(7); }
+
+// ── FAQ ──
+const FAQ_MAX = 10;
+let faqCount = 0;
+
+function addFaqItem() {
+  if (faqCount >= FAQ_MAX) return;
+  faqCount++;
+  const idx = faqCount;
+  const div = document.createElement('div');
+  div.className = 'faq-item';
+  div.id = 'faqItem' + idx;
+  div.innerHTML = `
+    <div class="faq-label">Q${idx}</div>
+    <textarea id="faqQ${idx}" placeholder="例：体験レッスンはありますか？" maxlength="400" oninput="updateChar('faqQ${idx}','faqQC${idx}',400)"></textarea>
+    <div class="faq-char"><span id="faqQC${idx}">0</span>/400</div>
+    <div class="faq-label" style="color:#555">A${idx}</div>
+    <textarea id="faqA${idx}" placeholder="例：はい、初回無料体験を実施しています。お気軽にご予約ください。" maxlength="400" oninput="updateChar('faqA${idx}','faqAC${idx}',400)"></textarea>
+    <div class="faq-char"><span id="faqAC${idx}">0</span>/400</div>
+    <div class="faq-delete" onclick="removeFaqItem(${idx})">⊗ 削除する</div>
+  `;
+  document.getElementById('faqList').appendChild(div);
+  updateFaqBtn();
+}
+
+function removeFaqItem(idx) {
+  const el = document.getElementById('faqItem' + idx);
+  if (el) el.remove();
+  faqCount--;
+  // renumber labels
+  document.querySelectorAll('.faq-item').forEach((item, i) => {
+    item.querySelectorAll('.faq-label')[0].textContent = 'Q' + (i + 1);
+    item.querySelectorAll('.faq-label')[1].textContent = 'A' + (i + 1);
+  });
+  updateFaqBtn();
+}
+
+function updateFaqBtn() {
+  const remain = FAQ_MAX - document.querySelectorAll('.faq-item').length;
+  document.getElementById('faqRemain').textContent = remain;
+  document.getElementById('faqAddBtn').disabled = remain <= 0;
+}
+
+function updateChar(fieldId, countId, max) {
+  const len = document.getElementById(fieldId)?.value.length || 0;
+  const el = document.getElementById(countId);
+  if (el) el.textContent = len;
+}
+
+function getFaqData() {
+  const items = document.querySelectorAll('.faq-item');
+  const faqs = [];
+  items.forEach((item, i) => {
+    const n = i + 1;
+    const q = document.getElementById('faqQ' + n)?.value.trim();
+    const a = document.getElementById('faqA' + n)?.value.trim();
+    if (q || a) faqs.push({ q: q || '', a: a || '' });
+  });
+  return faqs;
+}
 
 async function submitForm() {
   const data = {
@@ -840,6 +925,7 @@ async function submitForm() {
     companyName:   document.getElementById('companyName')?.value || '',
     contactName:   document.getElementById('contactName')?.value || '',
     email:         document.getElementById('email')?.value || '',
+    faq:           getFaqData(),
   };
 
   try {
