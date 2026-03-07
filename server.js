@@ -53,7 +53,7 @@ async function runAutomationFlow(data) {
 
     // Step 3: Vercelデプロイ
     console.log('Step 3: Vercelデプロイ');
-    const deployUrl = await deployToVercel(finalHtml, data.serviceName || 'lp');
+    const deployUrl = await deployToVercel(finalHtml, data.slug || data.serviceName || data.businessName || 'lp');
 
     // Step 4: Discord承認フロー
     console.log('Step 4: Discord承認待ち');
